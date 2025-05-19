@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser, updateSession } from "./utils/supabase/middleware";
-import { createSupabaseClient } from "./utils/supabase/client";
 
 export async function middleware(request: NextRequest, response: NextResponse) {
     const protectedRoutesList = ["/profile"],

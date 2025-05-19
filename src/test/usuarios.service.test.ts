@@ -1,6 +1,6 @@
 import { getUsuarios, getUsuarioById, createUsuario, updateUsuario, deleteUsuario } from "@/services/usuarios.service"
 import { createSupabaseClient } from "@/utils/supabase/server"
-import {MockSupabaseClient} from "@/types/test.types"
+import { MockSupabaseClient } from "@/types/test.types"
 
 // Mock de createSupabaseClient
 jest.mock("@/utils/supabase/server", () => ({
@@ -36,7 +36,7 @@ describe("Usuarios Service", () => {
         { id_usuario: 2, nombre: "Usuario 2", email: "usuario2@example.com" },
       ]
 
-      mockSupabase.eq.mockResolvedValue({ data: mockUsuarios, error: null })
+      mockSupabase.eq.mockResolvedValue({ data: [{ id_usuario: 1, nombre: "Usuario 1", email: "usuario1@example.com" } ], error: null })
 
       const result = await getUsuarios()
 
