@@ -1,4 +1,4 @@
-type MockSupabaseClient = {
+export type MockSupabaseClient = {
   from: jest.Mock
   select: jest.Mock
   eq: jest.Mock

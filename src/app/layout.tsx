@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Lato } from "next/font/google";
 import "./globals.css";
-
-const lato = Lato({
-  variable: "--font-geist-sans",
-  weight: ["400", "700"],
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Auth app",
@@ -20,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${lato.variable}  antialiased`}>{children}</body>
+      <body className="">{children}</body>
     </html>
   );
 }
