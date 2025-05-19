@@ -1,6 +1,6 @@
 import { getUsuarios, getUsuarioById, createUsuario, updateUsuario, deleteUsuario } from "@/services/usuarios.service"
 import { createSupabaseClient } from "@/utils/supabase/server"
-import { MockSupabaseClient } from "@/types/test.types"
+import {MockSupabaseClient} from "@/types/test.types"
 
 // Mock de createSupabaseClient
 jest.mock("@/utils/supabase/server", () => ({
