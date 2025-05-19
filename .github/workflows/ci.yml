@@ -2,9 +2,9 @@ name: Integración Continua
 
 on:
   push:
-    branches: [main]
+    branches: [prod, dev]
   pull_request:
-    branches: [main]
+    branches: [prod, dev]
 
 jobs:
   build-and-test:
