@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
                         });
 
 
-                    } catch (error) { }
+                    } catch { }
                 },
             },
         }
@@ -65,7 +65,7 @@ export async function getUser(request: NextRequest, response: NextResponse) {
                         });
 
 
-                    } catch (error) { }
+                    } catch { }
                 },
             },
         }
