@@ -4,9 +4,10 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 import { SaltosList } from "@/components/saltos-list"
+import { SaltoConId } from "@/types/salto"
 
 export default function SaltosAdminPage() {
-  const [saltos, setSaltos] = useState([])
+  const [saltos, setSaltos] = useState<SaltoConId[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -1,23 +1,17 @@
 export type Salto = {
-  id_destino: string
+  id_destino?: string
   descripcion: string
   nombre: string
   ubicacion: string
   url_mapa: string
   costo_entrada: number
-  dificultad: "baja" | "media" | "alta" | "extrema"
+  infraestructura: string[] | undefined
+  dificultad: 'baja' | 'media' | 'alta' | 'extrema'
+  biodiversidad: string
 }
 
+export type SaltoConId = Required<Pick<Salto, 'id_destino'>> & Omit<Salto, 'id_destino'>
+
 export type SaltoFormProps = {
-  initialData?: {
-    id_destino?: number
-    nombre: string
-    descripcion,
-    ubicacion: string
-    url_mapa: string
-    costo_entrada: number
-    infraestructura: string[] | undefined
-    biodiversidad: string
-    dificultad: 'baja' | 'media' | 'alta' | 'extrema' | undefined
-  }
+  initialData?: Salto
 }

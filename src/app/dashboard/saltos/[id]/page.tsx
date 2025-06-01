@@ -1,10 +1,11 @@
 'use client'
 import { use, useEffect, useState } from "react"
 import { SaltoForm } from "@/components/salto-form"
+import { Salto } from "@/types/salto"
 
 export default function EditarSaltoPage({ params }: { params: Promise<{ id: string }>  }) {
   const resolvedParams = use(params)
-  const [saltoData, setSaltoData] = useState(null)
+  const [saltoData, setSaltoData] = useState<Salto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 

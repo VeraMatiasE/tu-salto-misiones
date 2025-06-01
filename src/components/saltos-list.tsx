@@ -18,10 +18,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Salto } from "@/types/salto"
+import { SaltoConId } from "@/types/salto"
 
 type SaltosListProps = {
-  saltos: Salto[],
+  saltos: SaltoConId[],
   onSaltoDeleted?: (id: string) => void
 }
 

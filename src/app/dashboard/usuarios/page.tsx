@@ -6,9 +6,10 @@ import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { UsuariosList } from "@/components/usuarios-list"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Usuario } from "@/types/usuario"
 
 export default function UsuariosAdminPage() {
-  const [usuarios, setUsuarios] = useState([])
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   
   const [currentPage, setCurrentPage] = useState(1)

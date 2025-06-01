@@ -1,11 +1,12 @@
 'use client'
 
 import { UsuarioForm } from "@/components/usuario-form"
+import { Usuario } from "@/types/usuario"
 import { use, useEffect, useState } from "react"
 
 export default function EditarUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
-  const [usuarioData, setUsuarioData] = useState(null)
+  const [usuarioData, setUsuarioData] = useState<Usuario | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   
