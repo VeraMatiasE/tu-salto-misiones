@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -19,40 +20,14 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Salto } from "@/types/salto"
 
-// Datos de ejemplo
-const saltosDeMuestra: Salto[] = [
-  {
-    id: "1",
-    nombre: "Salto del Arcoiris",
-    ubicacion: "-27.0875, -54.4444",
-    url_map: "https://maps.google.com/?q=-27.0875,-54.4444",
-    costo: 500,
-    dificultad: "media"
-  },
-  {
-    id: "2",
-    nombre: "Cascada del Bosque",
-    ubicacion: "-26.9875, -54.5444",
-    url_map: "https://maps.google.com/?q=-26.9875,-54.5444",
-    costo: 0,
-    dificultad: "baja"
-  },
-  {
-    id: "3",
-    nombre: "Salto Grande",
-    ubicacion: "-27.1875, -54.3444",
-    url_map: "https://maps.google.com/?q=-27.1875,-54.3444",
-    costo: 400,
-    dificultad: "alta"
-  },
-]
+type SaltosListProps = {
+  saltos: Salto[],
+  onSaltoDeleted?: (id: string) => void
+}
 
-export function SaltosList() {
-  const [saltos, setSaltos] = useState<Salto[]>(saltosDeMuestra)
-
-  const eliminarSalto = (id: string) => {
-    setSaltos(saltos.filter((salto) => salto.id !== id))
-  }
+export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
+  const router = useRouter()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const getDificultadColor = (dificultad: string) => {
     switch (dificultad) {
@@ -66,6 +41,35 @@ export function SaltosList() {
         return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const handleDelete = async (saltoId: string, saltoNombre: string) => {
+    setDeletingId(saltoId)
+    
+    try {
+      const response = await fetch(`/api/destinos/${saltoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+      }
+
+      if (onSaltoDeleted) {
+        onSaltoDeleted(saltoId)
+      } else {
+        router.refresh()
+      }
+      
+    } catch (error) {
+      alert(`Error al eliminar ${saltoNombre}: ${error.message}`)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -90,11 +94,11 @@ export function SaltosList() {
             </TableRow>
           ) : (
             saltos.map((salto) => (
-              <TableRow key={salto.id} className="font-text">
+              <TableRow key={salto.id_destino} className="font-text">
                 <TableCell className="font-medium">{salto.nombre}</TableCell>
                 <TableCell>
                   <a
-                    href={salto.url_map}
+                    href={salto.url_mapa}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-blue-600 hover:underline"
@@ -104,10 +108,10 @@ export function SaltosList() {
                   </a>
                 </TableCell>
                 <TableCell>
-                  {salto.costo === 0 ? (
+                  {salto.costo_entrada === 0 ? (
                     <span className="text-green-600">Gratuito</span>
                   ) : (
-                    <span className="text-amber-600">${salto.costo}</span>
+                    <span className="text-amber-600">${salto.costo_entrada}</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -117,7 +121,7 @@ export function SaltosList() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link href={`/admin/saltos/${salto.id}`}>
+                    <Link href={`/dashboard/saltos/${salto.id_destino}`}>
                       <Button
                         variant="outline"
                         size="icon"
@@ -147,10 +151,18 @@ export function SaltosList() {
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction
-                            className="bg-red-500 hover:bg-red-600"
-                            onClick={() => eliminarSalto(salto.id)}
+                            className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                            disabled={deletingId === salto.id_destino}
+                            onClick={() => handleDelete(salto.id_destino, salto.nombre)}
                           >
-                            Eliminar
+                            {deletingId === salto.id_destino ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Eliminando...
+                              </>
+                            ) : (
+                              'Eliminar definitivamente'
+                            )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

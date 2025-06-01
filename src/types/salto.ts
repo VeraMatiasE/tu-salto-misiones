@@ -1,21 +1,23 @@
 export type Salto = {
-  id: string
+  id_destino: string
+  descripcion: string
   nombre: string
   ubicacion: string
-  url_map: string
-  costo: number
+  url_mapa: string
+  costo_entrada: number
   dificultad: "baja" | "media" | "alta" | "extrema"
 }
 
 export type SaltoFormProps = {
   initialData?: {
+    id_destino?: number
     nombre: string
+    descripcion,
     ubicacion: string
-    url_map: string
+    url_mapa: string
     costo_entrada: number
-    infraestructura: [string]
+    infraestructura: string[] | undefined
     biodiversidad: string
     dificultad: 'baja' | 'media' | 'alta' | 'extrema' | undefined
-    servicios: string[] | undefined
   }
 }

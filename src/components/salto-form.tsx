@@ -21,10 +21,13 @@ const formSchema = z.object({
   nombre: z.string().min(3, {
     message: "El nombre debe tener al menos 3 caracteres.",
   }),
+  descripcion: z.string().min(10, {
+    message: "La descripción debe tener al menos 10 caracteres.",
+  }),
   ubicacion: z.string().min(5, {
     message: "Ingresa coordenadas válidas.",
   }),
-  url_map: z.string().url({
+  url_mapa: z.string().url({
     message: "Ingresa una URL válida de Google Maps.",
   }),
   costo_entrada: z.number().min(0, { message: "El valor debe de ser mayor o igual a 0" }),
@@ -33,7 +36,6 @@ const formSchema = z.object({
     message: "La descripción debe tener al menos 10 caracteres.",
   }),
   dificultad: z.enum(["baja", "media", "alta", "extrema"]),
-  servicios: z.array(z.string()).optional(),
 })
 
 // Opciones para infraestructura
@@ -46,15 +48,6 @@ const opcionesInfraestructura = [
   { id: "miradores", label: "Miradores" },
 ]
 
-// Opciones para servicios
-const opcionesServicios = [
-  { id: "restaurante", label: "Restaurante" },
-  { id: "alojamiento", label: "Alojamiento" },
-  { id: "tienda", label: "Tienda de souvenirs" },
-  { id: "primeros_auxilios", label: "Primeros auxilios" },
-  { id: "wifi", label: "WiFi" },
-]
-
 export function SaltoForm({ initialData }: SaltoFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -65,38 +58,57 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
     defaultValues: initialData
       ? {
           nombre: initialData.nombre,
+          descripcion: initialData.descripcion,
           ubicacion: initialData.ubicacion,
-          url_map: initialData.url_map,
+          url_mapa: initialData.url_mapa,
           costo_entrada: initialData.costo_entrada,
-          infraestructura: initialData.infraestructura || [],
+          infraestructura: (() => {
+            if (typeof initialData?.infraestructura === 'string') {
+              return JSON.parse(initialData.infraestructura)
+            }
+            return Array.isArray(initialData?.infraestructura) ? initialData.infraestructura : []
+          })(),
           biodiversidad: initialData.biodiversidad,
           dificultad: initialData.dificultad,
-          servicios: initialData.servicios || [],
         }
       : {
           nombre: "",
+          descripcion: "",
           ubicacion: "",
-          url_map: "",
+          url_mapa: "",
           costo_entrada: 0,
           infraestructura: [],
           biodiversidad: "",
           dificultad: "media",
-          servicios: [],
         },
   })
 
   // Función para manejar el envío del formulario
-  async function onSubmit(values/*: z.infer<typeof formSchema>*/) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
 
+    const isEditing = Boolean(initialData?.id_destino)
+    const action = isEditing ? 'actualizar' : 'crear'
+
     try {
-      // TODO lógica API
-      console.log("Datos del formulario:", values)
+      const response = await fetch(
+        isEditing ? `/api/destinos/${initialData?.id_destino}` : '/api/destinos',
+        {
+          method: isEditing ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
 
       router.push("/dashboard/saltos")
       router.refresh()
     } catch (error) {
-      console.error("Error al guardar:", error)
+      console.error(`Error al ${action} el salto:`, error)
     } finally {
       setIsSubmitting(false)
     }
@@ -106,10 +118,9 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Tabs defaultValue="informacion" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="informacion">Información básica</TabsTrigger>
             <TabsTrigger value="caracteristicas">Características</TabsTrigger>
-            <TabsTrigger value="servicios">Servicios</TabsTrigger>
           </TabsList>
 
           {/* Pestaña de información básica */}
@@ -149,7 +160,7 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
 
               <FormField
                 control={form.control}
-                name="url_map"
+                name="url_mapa"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Link a Google Maps</FormLabel>
@@ -184,19 +195,19 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
 
             <FormField
               control={form.control}
-              name="biodiversidad"
+              name="descripcion"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Flora y fauna</FormLabel>
+                  <FormLabel>Descripción del salto</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe la biodiversidad del área..."
+                      placeholder="Describe las características del salto..."
                       className="min-h-[120px]"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Incluye información sobre especies nativas, vegetación y animales característicos.
+                     Incluye altura, caudal, formación rocosa, pozas y características distintivas del salto.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -270,45 +281,23 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                 </FormItem>
               )}
             />
-          </TabsContent>
 
-          {/* Pestaña de servicios */}
-           <TabsContent value="servicios" className="space-y-6 pt-4">
-             <FormField
-               control={form.control}
-               name="servicios"
-               render={() => (
-                 <FormItem>
-                   <div className="mb-4">
-                     <FormLabel className="text-base">Servicios disponibles</FormLabel>
-                     <FormDescription>Selecciona todos los servicios disponibles en el área</FormDescription>
-                   </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                     {opcionesServicios.map((item) => (
-                      <FormField
-                        key={item.id}
-                        control={form.control}
-                        name="servicios"
-                        render={({ field }) => {
-                          return (
-                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(item.id)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...(field.value || []), item.id])
-                                      : field.onChange(field.value?.filter((value) => value !== item.id))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">{item.label}</FormLabel>
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
+            <FormField
+              control={form.control}
+              name="biodiversidad"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Flora y fauna</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe la biodiversidad del área..."
+                      className="min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Incluye información sobre especies nativas, vegetación y animales característicos.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
