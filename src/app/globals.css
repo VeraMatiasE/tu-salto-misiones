@@ -16,6 +16,8 @@
     --color-hover-accent-secondary: #DAF0F3;
 
     --color-text-secondary: #2C2C2C;
+
+    --color-destructive: #D9534F;
 }
 
 @utility container {  
