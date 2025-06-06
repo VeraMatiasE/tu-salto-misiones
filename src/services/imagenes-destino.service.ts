@@ -1,6 +1,8 @@
 import { createSupabaseClient } from "@/utils/supabase/server"
 import type { ImagenDestino, ApiResponse } from "@/types/database"
 import { Imagen, ImagenesDestino } from "@/types/imagenes"
+import cloudinary from "@/lib/cloudnary"
+import { UploadApiResponse } from "cloudinary"
 
 export async function getAllDestinoWithImagenes(): Promise<ApiResponse<ImagenesDestino[]>> {
     try {
@@ -118,18 +120,49 @@ export async function getImagenById(id: number): Promise<ApiResponse<ImagenDesti
   }
 }
 
-export async function createImagen(
-  imagen: Omit<ImagenDestino, "id_imagen" | "fecha_registro" | "fecha_actualizacion">,
+export async function uploadImage(
+  image: File, saltoId: number
+  /*: Omit<ImagenDestino, "id_imagen" | "fecha_registro" | "fecha_actualizacion">,*/
 ): Promise<ApiResponse<ImagenDestino>> {
   try {
+
+    const arrayBuffer = await image.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const cloudinaryResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder: `destinos/${saltoId}`,
+            resource_type: 'image',
+            transformation: [
+              { quality: 'auto' },
+              { fetch_format: 'auto' }
+            ]
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result as UploadApiResponse);
+          }
+        ).end(buffer);
+      }) as UploadApiResponse;
+
+    const imageData = {
+      id_destino: saltoId,
+      url_imagen: cloudinaryResult.secure_url,
+      public_id: cloudinaryResult.public_id
+    }
+
     const supabase = await createSupabaseClient()
     const { data, error } = await supabase
       .from("imagenes_destino")
-      .insert([{ ...imagen }])
+      .insert([{ ...imageData }])
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      await await cloudinary.uploader.destroy(imageData.public_id);
+      throw new Error(`Error al guardar metadatos: ${error.message}`);
+    }
 
     return {
       success: true,
@@ -177,7 +210,21 @@ export async function updateImagen(id: number, imagen: Partial<ImagenDestino>): 
 export async function deleteImagen(id: number): Promise<ApiResponse<null>> {
   try {
     const supabase = await createSupabaseClient()
-    const { error } = await supabase
+    const { data: imagen, error: fetchError } = await supabase
+      .from("imagenes_destino")
+      .select("public_id")
+      .eq("id_imagen", id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!imagen?.public_id) throw new Error("No se encontró el public_id");
+    
+    const cloudinaryResult = await cloudinary.uploader.destroy(imagen.public_id);
+    if (cloudinaryResult.result !== "ok" && cloudinaryResult.result !== "not found") {
+      throw new Error(`Error al eliminar en Cloudinary: ${cloudinaryResult.result}`);
+    }
+
+    const { error: updateError  } = await supabase
       .from("imagenes_destino")
       .update({
         estatus: false,
@@ -185,7 +232,7 @@ export async function deleteImagen(id: number): Promise<ApiResponse<null>> {
       })
       .eq("id_imagen", id)
 
-    if (error) throw error
+    if (updateError) throw updateError
 
     return {
       success: true,

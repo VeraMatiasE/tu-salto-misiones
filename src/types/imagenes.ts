@@ -2,6 +2,7 @@ export type Imagen = {
     id_imagen: string
     url_imagen: string
     fecha_actualizacion: string
+    public_id: string
 }
 
 export type ImagenesDestino = {

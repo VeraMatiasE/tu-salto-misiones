@@ -27,6 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Imagen } from "@/types/imagenes"
 import { useImageSizes } from "@/hooks/useImageSizes"
+import { CldImage } from "next-cloudinary"
 
 type ImagenUploadProps = {
   saltoId: string
@@ -100,7 +101,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     const results = [];
     
     for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
+      const file: File = selectedFiles[i];
       
       try {
         setUploadProgress(prev => ({
@@ -108,13 +109,8 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
           [i]: { status: 'uploading', progress: 0 }
         }));
         
-        /*
-        const result = await uploadSingleImage(file, i);
-        results.push(result);
-        */
-
-        // Simular carga
-        await new Promise((resolve) => setTimeout(resolve, 150000))
+        const result = await uploadSingleImage(file);
+        results.push(result.data);
         
         setUploadProgress(prev => ({
           ...prev,
@@ -133,13 +129,11 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     handleUploadSuccess({ images: results });
   };
 
-  const uploadSingleImage = async (file, index) => {
+  const uploadSingleImage = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('destinoId', saltoId);
-    formData.append('orden', index);
     
-    const response = await fetch('/api/images', {
+    const response = await fetch(`/api/destinos/${saltoId}/imagenes`, {
       method: 'POST',
       body: formData
     });
@@ -152,7 +146,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     return await response.json();
   };
 
-  const handleUploadSuccess = (result) => {
+  const handleUploadSuccess = (result: { images: Imagen[] }) => {
     setSelectedFiles([]);
     setPreviewUrls(prev => {
       prev.forEach(url => URL.revokeObjectURL(url));
@@ -182,7 +176,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     try {
       setDeletingImages(prev => new Set([...prev, imageId]));
 
-      const response = await fetch(`/api/images/${imageId}`, {
+      const response = await fetch(`/api/imagenes/${imageId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -247,17 +241,20 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {images.map((image, index) => (
-                  <Card key={image.id_imagen} className="overflow-hidden">
+                  <Card key={index} className="overflow-hidden">
                     <div className="relative aspect-[4/3] bg-muted">
-                      <Image
+                      <CldImage
                         src={image.url_imagen}
                         alt={`Imagen ${index + 1}`}
                         fill
-                        className="object-cover rounded"
+                        crop={{
+                          type: 'auto',
+                          source: true
+                        }}
                         onLoad={() => getImageSize(image.url_imagen)}
                         onError={() => {
-                        console.error(`Error al cargar imagen: ${image.url_imagen}`);
-                      }}
+                          console.error(`Error al cargar imagen: ${image.url_imagen}`);
+                        }}
                       />
 
                       {/* Mostrar spinner individual mientras carga el tamaño */}

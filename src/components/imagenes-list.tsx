@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, Plus } from "lucide-react"
 import { ImagenesDestino } from "@/types/imagenes"
+import { CldImage } from "next-cloudinary"
 
 type ImagenesListProps = {
   imagenes_saltos: ImagenesDestino[]
@@ -26,8 +26,8 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
           <CardContent className="pb-2">
             <div className="relative aspect-video bg-muted rounded-md overflow-hidden">
               {imagenes_salto.imagenes.length > 0 ? (
-                <Image
-                  src={imagenes_salto.imagenes[0].url_imagen || "/placeholder.svg"}
+                <CldImage
+                  src={imagenes_salto.imagenes[0].url_imagen}
                   alt={imagenes_salto.nombre}
                   fill
                   className="object-cover"
@@ -42,7 +42,12 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {imagenes_salto.imagenes.slice(0, 4).map((imagen) => (
                   <div key={imagen.id_imagen} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                    <Image src={imagen.url_imagen || "/placeholder.svg"} alt="" fill className="object-cover" />
+                    <CldImage
+                      src={imagen.url_imagen}
+                      alt=""
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 ))}
               </div>
