@@ -28,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Imagen } from "@/types/imagenes"
 import { useImageSizes } from "@/hooks/useImageSizes"
 import { CldImage } from "next-cloudinary"
+import { ApiResponse } from "@/types/database"
 
 type ImagenUploadProps = {
   saltoId: string
@@ -98,7 +99,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
   }
 
   const uploadImagesOneByOne = async () => {
-    const results = [];
+    const results: Imagen[] = [];
     
     for (let i = 0; i < selectedFiles.length; i++) {
       const file: File = selectedFiles[i];
@@ -110,6 +111,9 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
         }));
         
         const result = await uploadSingleImage(file);
+        if (!result.data) {
+          throw new Error('No se recibió imagen del servidor');
+        }
         results.push(result.data);
         
         setUploadProgress(prev => ({
@@ -129,7 +133,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     handleUploadSuccess({ images: results });
   };
 
-  const uploadSingleImage = async (file: File) => {
+  const uploadSingleImage = async (file: File): Promise<ApiResponse<Imagen>> => {
     const formData = new FormData();
     formData.append('image', file);
     

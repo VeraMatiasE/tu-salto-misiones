@@ -15,7 +15,8 @@ export async function getAllDestinoWithImagenes(): Promise<ApiResponse<ImagenesD
         nombre,
         imagenes_destino:imagenes_destino(
           id_imagen,
-          url_imagen
+          url_imagen,
+          public_id
         )
       `)
       .eq("estatus", true)
@@ -47,6 +48,7 @@ export async function getAllDestinoWithImagenes(): Promise<ApiResponse<ImagenesD
               id_imagen: imagen.id_imagen,
               url_imagen: imagen.url_imagen,
               fecha_actualizacion: imagen.fecha_actualizacion,
+              public_id: imagen.public_id,
             })
           })
         }
