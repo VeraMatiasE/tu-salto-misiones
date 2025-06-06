@@ -1,4 +1,5 @@
 import { getUsuarios, getUsuarioById, createUsuario, updateUsuario, deleteUsuario, getUsuarioByEmail } from "@/services/usuarios.service"
+import { MockSupabaseClient } from "@/types/test.types"
 import { createSupabaseClient } from "@/utils/supabase/server"
 
 // Mock de createSupabaseClient
@@ -21,6 +22,7 @@ describe("Usuarios Service", () => {
       or: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       range: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn(),
     }
     ;(createSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase)
     jest.spyOn(console, 'error').mockImplementation(() => {});

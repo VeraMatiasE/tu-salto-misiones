@@ -124,7 +124,6 @@ export async function getImagenById(id: number): Promise<ApiResponse<ImagenDesti
 
 export async function uploadImage(
   image: File, saltoId: number
-  /*: Omit<ImagenDestino, "id_imagen" | "fecha_registro" | "fecha_actualizacion">,*/
 ): Promise<ApiResponse<ImagenDestino>> {
   try {
 
