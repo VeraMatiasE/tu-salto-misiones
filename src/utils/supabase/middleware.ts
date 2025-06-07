@@ -71,5 +71,6 @@ export async function getUser(request: NextRequest, response: NextResponse) {
         }
 
     );
-    return supabase.auth.getUser();
+    const user = await supabase.auth.getUser();
+    return { user: user.data.user, supabase };
 }

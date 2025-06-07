@@ -27,6 +27,9 @@ describe("Destinos Service", () => {
       insert: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       single: jest.fn(),
+      range: jest.fn().mockReturnThis(),
+      order: jest.fn(),
+      maybeSingle: jest.fn(),
     }
     ;(createSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
     jest.spyOn(console, 'error').mockImplementation(() => {});

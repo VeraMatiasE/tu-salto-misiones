@@ -1,16 +1,57 @@
 import { createSupabaseClient } from "@/utils/supabase/server"
 import type { Usuario, ApiResponse } from "@/types/database"
+import { PaginatedResponse, PaginationMeta, PaginationParams } from "@/types/pagination"
 
-export async function getUsuarios(): Promise<ApiResponse<Usuario[]>> {
+export async function getUsuarios(params: PaginationParams = {}): Promise<ApiResponse<PaginatedResponse<Usuario[]>>> {
   try {
     const supabase = await createSupabaseClient()
-    const { data, error } = await supabase.from("usuarios").select("*").eq("estatus", true)
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      orderBy = 'fecha_registro',
+      orderDirection = 'desc'
+    } = await params
+
+    const offset = (page - 1) * limit
+
+    let query = supabase
+      .from("usuarios")
+      .select("*", { count: 'exact' })
+      .eq("estatus", true)
+
+    // Aplicar búsqueda si existe
+    if (search.trim()) {
+      query = query.or(`nombre.ilike.%${search}%,email.ilike.%${search}%`)
+    }
+
+    // Aplicar ordenamiento y paginación
+    query = query
+      .order(orderBy, { ascending: orderDirection === 'asc' })
+      .range(offset, offset + limit - 1)
+    
+    const { data, error, count } = await query
 
     if (error) throw error
 
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / limit)
+
+    const pagination: PaginationMeta = {
+      currentPage: page,
+      totalPages,
+      total: totalCount,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+
     return {
       success: true,
-      data: data as Usuario[],
+      data: {
+        data: data as Usuario[],
+        pagination
+      }
     }
   } catch (error) {
     console.error("Error al obtener usuarios:", error)
