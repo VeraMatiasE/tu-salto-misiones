@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { BooleanRadioGroup } from "./ui/boolean-radio-group"
+import { BooleanRadioGroup } from "@/components/ui/boolean-radio-group"
 import { signUp } from "@/actions/auth"
 
 const formSchema = z.object({

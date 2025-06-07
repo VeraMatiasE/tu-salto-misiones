@@ -148,7 +148,7 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                     <FormLabel>Coordenadas</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="Ej. -27.0875, -54.4444" {...field} />
+                        <Input aria-label="Coordenadas" placeholder="Ej. -27.0875, -54.4444" {...field} />
                         <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       </div>
                     </FormControl>

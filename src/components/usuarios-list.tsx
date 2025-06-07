@@ -93,8 +93,9 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
                   <TableCell>{new Date(usuario.fecha_registro).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Link href={`/dashboard/usuarios/${usuario.id_usuario}`}>
+                      <Link aria-label="editar" href={`/dashboard/usuarios/${usuario.id_usuario}`}>
                         <Button
+                          aria-label="editar"
                           variant="outline"
                           size="icon"
                           className="text-sky-600 border-sky-600 hover:bg-sky-100"
@@ -105,6 +106,7 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
+                            aria-label="eliminar"
                             variant="outline"
                             size="icon"
                             className="text-red-500 border-red-500 hover:bg-red-100"

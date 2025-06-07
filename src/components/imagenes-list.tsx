@@ -34,7 +34,7 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground opacity-50" />
+                  <ImageIcon aria-label="placeholder" className="h-12 w-12 text-muted-foreground opacity-50" />
                 </div>
               )}
             </div>

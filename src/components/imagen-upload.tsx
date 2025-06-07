@@ -275,6 +275,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
                               <TooltipTrigger asChild>
                                 <AlertDialogTrigger asChild>
                                   <Button 
+                                    aria-label="eliminar imagen"
                                     variant="destructive"
                                     size="icon"
                                     disabled={deletingImages.has(image.id_imagen)}
@@ -370,6 +371,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
+                                aria-label="eliminar imagen"
                                 variant="outline"
                                 size="icon"
                                 className="text-red-500 border-red-500 hover:bg-red-100"
@@ -464,8 +466,8 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
 
                 {previewUrls.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="text-sm font-medium">
-                      Vista previa ({previewUrls.length} imagen{previewUrls.length !== 1 ? 's' : ''})
+                    <h3 aria-label="Vista previa" className="text-sm font-medium">
+                      Vista previa ({previewUrls.length} imagen{previewUrls.length !== 1 ? 'es' : ''})
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {previewUrls.map((url, index) => (
