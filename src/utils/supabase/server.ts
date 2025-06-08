@@ -27,3 +27,34 @@ export async function createSupabaseClient() {
 
     );
 }
+
+export async function getAuthenticatedUser() {
+    const supabase = await createSupabaseClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
+        return null;
+    }
+    
+    return user;
+}
+
+export async function getUserProfile() {
+    const supabase = await createSupabaseClient();
+    const user = await getAuthenticatedUser();
+    
+    if (!user) return null;
+    
+    const { data: profile, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("uid_usuario", user.id)
+        .single();
+    
+    if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
+    
+    return { user, profile };
+}

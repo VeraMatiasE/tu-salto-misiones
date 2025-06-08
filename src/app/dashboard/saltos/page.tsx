@@ -14,7 +14,7 @@ export default function SaltosAdminPage() {
     fetch('/api/destinos')
       .then(res => res.json())
       .then(data => {
-        setSaltos(data.data)
+        setSaltos(data.data.data)
         setLoading(false)
       })
       .catch(error => {
