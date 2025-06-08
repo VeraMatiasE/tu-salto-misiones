@@ -9,6 +9,8 @@ export type MockSupabaseClient = {
   maybeSingle: jest.Mock
   range: jest.Mock
   order: jest.Mock
+  in: jest.Mock
+  not: jest.Mock
 }
 
 export interface UploadStreamReturn {

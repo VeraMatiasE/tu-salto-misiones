@@ -1,6 +1,7 @@
 import { createSupabaseClient } from "@/utils/supabase/server"
 import type { ApiResponse, Destino } from "@/types/database"
-import { SaltosDestacados } from "@/types/salto"
+import { SaltoFilters, SaltosDestacados, SaltosFiltersOptions, SaltoWithExtras } from "@/types/salto"
+import { PaginatedResponse, PaginationMeta } from "@/types/pagination"
 
 export async function getDestinosDestacados(): 
   Promise<ApiResponse<SaltosDestacados[]>> {
@@ -53,22 +54,199 @@ export async function getDestinosDestacados():
   }
 }
 
-export async function getDestinos(): Promise<ApiResponse<Destino[]>> {
+function applySearchFilter(query, search: string) {
+  return query.or(`nombre.ilike.%${search}%,ubicacion.ilike.%${search}%,descripcion.ilike.%${search}%`)
+}
+
+export async function getDestinos(filters?: SaltoFilters): Promise<ApiResponse<PaginatedResponse<SaltoWithExtras[]>>> {
   try {
     const supabase = await createSupabaseClient()
-    const { data, error } = await supabase.from("destinos").select("*").eq("estatus", true)
+    let query = supabase
+      .from('destinos')
+      .select(`
+        *,
+        imagenes_destino(url_imagen),
+        resenas(calificacion)
+      `)
+      .eq('estatus', true)
+
+    if (filters?.search) {
+      query = applySearchFilter(query, filters.search)
+    }
+
+    if (filters?.ubicaciones && filters.ubicaciones.length > 0) {
+      query = query.in('ubicacion', filters.ubicaciones)
+    }
+
+    if (filters?.dificultades && filters.dificultades.length > 0) {
+      query = query.in('dificultad', filters.dificultades)
+    }
+
+    const { data: rawData, error } = await query
 
     if (error) throw error
 
+    if (!rawData) {
+      return {
+        success: true,
+        data: {
+          data: [],
+          pagination: {
+            total: 0,
+            currentPage: filters?.page || 1,
+            limit: filters?.limit || 100,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        }
+      }
+    }
+    
+    const processedData = rawData.map((destino) => {
+      const ratings = destino.resenas?.map((resena) => resena.calificacion) || []
+      const avgRating = ratings.length > 0 
+        ? ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length 
+        : 0
+
+      const firstImage = destino.imagenes_destino?.[0]?.url_imagen || null
+
+      let infraestructura: string[] = [];
+      try {
+        infraestructura = JSON.parse(destino.infraestructura);
+      } catch {
+        console.warn("Infraestructura no es un JSON válido:", destino.infraestructura);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { resenas, imagenes_destino, ...cleanDestino } = destino
+      
+      return {
+        ...cleanDestino,
+        infraestructura,
+        puntuacion: Math.round(avgRating * 10) / 10, // Round to 1 decimal
+        url_imagen: firstImage
+      } as SaltoWithExtras
+    })
+
+    let filteredData = processedData
+    if (filters?.puntuacionMin !== undefined) {
+      filteredData = filteredData.filter(destino => destino.puntuacion >= filters.puntuacionMin!)
+    }
+    if (filters?.puntuacionMax !== undefined) {
+      filteredData = filteredData.filter(destino => destino.puntuacion <= filters.puntuacionMax!)
+    }
+    if (filters?.servicios && filters.servicios.length > 0) {
+      filteredData = filteredData.filter(destino => 
+        filters.servicios!.every(servicio => destino?.infraestructura && destino.infraestructura.includes(servicio))
+      )
+    }
+
+    // Apply sorting
+    if (filters?.sortBy) {
+      filteredData.sort((a, b) => {
+        switch (filters.sortBy) {
+          case 'nombre_asc':
+            return a.nombre.localeCompare(b.nombre)
+          case 'nombre_desc':
+            return b.nombre.localeCompare(a.nombre)
+          case 'puntuacion_desc':
+            return b.puntuacion - a.puntuacion
+          case 'puntuacion_asc':
+            return a.puntuacion - b.puntuacion
+          case 'dificultad_asc':
+            const difficultyOrder = { 'baja': 1, 'media': 2, 'alta': 3, 'extrema': 4 }
+            return difficultyOrder[a.dificultad] - difficultyOrder[b.dificultad]
+          default:
+            return a.nombre.localeCompare(b.nombre)
+        }
+      })
+    }
+
+    // Apply pagination
+    const page = filters?.page || 1
+    const limit = filters?.limit || 100
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedData = filteredData.slice(startIndex, endIndex)
+    const total = filteredData.length
+    const totalPages = Math.ceil(total / limit)
+
+    const pagination: PaginationMeta = {
+      currentPage: page,
+      totalPages,
+      total,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+
     return {
       success: true,
-      data: data as Destino[],
+      data: {
+        data: paginatedData,
+        pagination
+      }
     }
   } catch (error) {
     console.error("Error al obtener destinos:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error desconocido al obtener destinos",
+    }
+  }
+}
+
+export async function getFilterOptions(): Promise<ApiResponse<SaltosFiltersOptions>> {
+  try {
+    const supabase = await createSupabaseClient()
+    
+    const { data: ubicacionesData, error: ubicacionesError } = await supabase
+      .from('destinos')
+      .select('ubicacion')
+      .eq('estatus', true)
+      .not('ubicacion', 'is', null)
+
+    if (ubicacionesError) throw ubicacionesError
+
+    const { data: serviciosData, error: serviciosError } = await supabase
+      .from('destinos')
+      .select('infraestructura')
+      .eq('estatus', true)
+      .not('infraestructura', 'is', null)
+
+    if (serviciosError) throw serviciosError
+
+    const ubicaciones = [...new Set(
+      ubicacionesData?.map(item => item.ubicacion).filter(Boolean) || []
+    )].sort()
+
+    const allServicios = serviciosData?.flatMap(item => {
+      try {
+        return item.infraestructura ? JSON.parse(item.infraestructura) : [];
+      } catch {
+        return [];
+      }
+    }) || [];
+
+    const servicios = [...new Set(allServicios)].sort();
+
+    const dificultades = ['baja', 'media', 'alta', 'extrema']
+
+    return {
+      success: true,
+      data: {
+        ubicaciones,
+        dificultades,
+        servicios
+      }
+    }
+
+  } catch (error) {
+    console.error('Error al obtener opciones de filtros:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error desconocido al obtener opciones de filtros'
     }
   }
 }

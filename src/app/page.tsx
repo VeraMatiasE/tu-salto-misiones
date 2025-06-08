@@ -11,8 +11,11 @@ import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import { SaltosDestacados } from "@/types/salto"
 import { CldImage } from "next-cloudinary"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
+  const router = useRouter()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [saltosDestacados, setSaltosDestacados] = useState<SaltosDestacados[]>([])
   
@@ -26,6 +29,20 @@ export default function HomePage() {
           console.error('Error al cargar los saltos:', error)
         })
     }, [])
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      router.push(`/saltos?search=${encodeURIComponent(searchTerm.trim())}`)
+    } else {
+      router.push('/saltos')
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
@@ -57,11 +74,13 @@ export default function HomePage() {
               placeholder="Buscar salto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full py-4 px-6 text-lg rounded-full border-0 shadow-lg"
             />
             <Button
               size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full bg-teal-500 hover:bg-teal-600"
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 rounded-full bg-teal-500 hover:bg-teal-600"
+              onClick={handleSearch}
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -98,9 +117,11 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-full text-lg">
-              Ver Todos los Saltos
-            </Button>
+            <Link href="/saltos">
+              <Button className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-full text-lg">
+                Ver Todos los Saltos
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

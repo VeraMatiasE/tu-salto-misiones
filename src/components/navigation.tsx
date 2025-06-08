@@ -246,7 +246,7 @@ export default function Navigation({ variant = "default", currentPage = "inicio"
               </Link>
             </div>
 
-            <Link href="/" className="text-2xl font-title font-bold text-white hover:text-white/90 transition-colors">
+            <Link href="/" className="text-2xl font-title font-bold text-black hover:text-header-primary transition-colors">
               Tu Salto Misiones
             </Link>
 
@@ -278,7 +278,7 @@ export default function Navigation({ variant = "default", currentPage = "inicio"
                           <User className="h-4 w-4" />
                         )}
                       </div>
-                      <span className="hidden sm:inline">{userProfile?.user.nombre || "Usuario"}</span>
+                      <span className="text-black hidden sm:inline">{userProfile?.user.nombre || "Usuario"}</span>
                     </div>
                     <form>
                     <Button 
