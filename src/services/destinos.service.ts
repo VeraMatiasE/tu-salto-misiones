@@ -1,5 +1,57 @@
 import { createSupabaseClient } from "@/utils/supabase/server"
-import type { Destino, ApiResponse } from "@/types/database"
+import type { ApiResponse, Destino } from "@/types/database"
+import { SaltosDestacados } from "@/types/salto"
+
+export async function getDestinosDestacados(): 
+  Promise<ApiResponse<SaltosDestacados[]>> {
+  try {
+    const supabase = await createSupabaseClient()
+    const { data: dataSalto, error: errorSalto } = await supabase.from("destinos")
+      .select("id_destino, nombre, ubicacion")
+      .eq("estatus", true)
+      .limit(6)
+      
+    if (errorSalto) throw errorSalto
+    if (!dataSalto || dataSalto.length === 0) {
+      return {
+        success: true,
+        data: []
+      }
+    }
+
+    const destinosConImagenes: SaltosDestacados[] = []
+
+    for (const salto of dataSalto) {
+      const { data: dataImagen, error: errorImagen } = await supabase
+        .from("imagenes_destino")
+        .select("id_imagen, url_imagen")
+        .eq("id_destino", salto.id_destino)
+        .eq("estatus", true)
+        .limit(1)
+        .single()
+
+      if (errorImagen) {
+        console.warn(`No se encontró imagen para destino ${salto.id_destino}:`, errorImagen)
+      }
+
+      destinosConImagenes.push({
+        ...salto,
+        url_imagen: dataImagen?.url_imagen,
+      })
+    }
+
+    return {
+      success: true,
+      data: destinosConImagenes,
+    }
+  } catch (error) {
+    console.error("Error al obtener destinos:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido al obtener destinos",
+    }
+  }
+}
 
 export async function getDestinos(): Promise<ApiResponse<Destino[]>> {
   try {

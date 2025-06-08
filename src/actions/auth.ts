@@ -25,8 +25,6 @@ export async function signUp(formData: FormData) {
     if (!authData || !authData.user || !authData.user.email) {
       redirect("/error");
     }
-    
-    console.log(authData);
 
     const { error: dbError } = await createUsuario({
       nombre: formData.get("nombre") == null ? "" : formData.get("nombre") as string,
