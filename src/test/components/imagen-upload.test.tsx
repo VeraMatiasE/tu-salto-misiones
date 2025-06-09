@@ -307,7 +307,7 @@ describe('ImagenUpload', () => {
       let id = 0
       const spy = jest
         .spyOn(global.URL, 'createObjectURL')
-        .mockImplementationOnce(() => `mock-blob-url-${id++}`)
+        .mockImplementation(() => `mock-blob-url-${id++}`)
       const files = [
         new File(['test1'], 'test1.jpg', { type: 'image/jpeg' }),
         new File(['test2'], 'test2.png', { type: 'image/png' }),
@@ -330,6 +330,10 @@ describe('ImagenUpload', () => {
     let user: ReturnType<typeof userEvent.setup>
 
     beforeEach(async () => {
+      let id = 0
+      const spy = jest
+        .spyOn(global.URL, 'createObjectURL')
+        .mockImplementation(() => `mock-blob-url-${id++}`)
       user = userEvent.setup()
       render(<ImagenUpload {...defaultProps} />)
 
@@ -341,13 +345,14 @@ describe('ImagenUpload', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
       const input = screen.getByLabelText('Seleccionar imágenes')
       await user.upload(input, file)
+      spy.mockRestore()
     })
 
     it('debe mostrar vista previa de archivos seleccionados', () => {
       expect(screen.getByTestId('next-image')).toBeInTheDocument()
       expect(screen.getByTestId('next-image')).toHaveAttribute(
         'src',
-        '/placeholder.svg',
+        'mock-blob-url-0',
       )
     })
 
@@ -364,6 +369,9 @@ describe('ImagenUpload', () => {
     let user: ReturnType<typeof userEvent.setup>
 
     beforeEach(async () => {
+      const spy = jest
+        .spyOn(global.URL, 'createObjectURL')
+        .mockImplementation(() => `mock-blob-url-test`)
       user = userEvent.setup()
       render(<ImagenUpload {...defaultProps} />)
 
@@ -375,6 +383,7 @@ describe('ImagenUpload', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
       const input = screen.getByLabelText('Seleccionar imágenes')
       await user.upload(input, file)
+      spy.mockRestore()
     })
 
     it('debe manejar errores durante la subida', async () => {
