@@ -1,7 +1,7 @@
 'use client'
 
 import { User } from '@supabase/supabase-js'
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
 
 type AuthContextType = {
   isAuthenticated: boolean
@@ -17,18 +17,21 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
+type AuthWrapperProps = Readonly<{
+  isAuthenticated: boolean
+  user: User | null
+  children: React.ReactNode
+}>
+
 export default function AuthWrapper({
   isAuthenticated,
   user,
   children,
-}: {
-  isAuthenticated: boolean
-  user: User | null
-  children: React.ReactNode
-}) {
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user }}>
-      {children}
-    </AuthContext.Provider>
+}: AuthWrapperProps) {
+  const value = useMemo(
+    () => ({ isAuthenticated, user }),
+    [isAuthenticated, user],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

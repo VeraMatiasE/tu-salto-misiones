@@ -143,7 +143,7 @@ export async function logIn(formData: FormData): Promise<LoginActionResult> {
     })
 
     if (error) {
-      let errorMessage = 'Error al iniciar sesión'
+      let errorMessage: string
 
       switch (error.message) {
         case 'Invalid login credentials':

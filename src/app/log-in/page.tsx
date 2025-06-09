@@ -152,19 +152,20 @@ export default function LoginPage(): JSX.Element {
 
         if (result.success) {
           router.push('/profile')
-        } else {
-          if (result.fieldErrors) {
-            const newErrors: FormErrors = {}
-            if (result.fieldErrors.email) {
-              newErrors.email = result.fieldErrors.email[0]
-            }
-            if (result.fieldErrors.password) {
-              newErrors.password = result.fieldErrors.password[0]
-            }
-            setErrors(newErrors)
-          } else {
-            setErrors({ general: result.error || 'Error al iniciar sesión' })
+          return
+        }
+
+        if (result.fieldErrors) {
+          const newErrors: FormErrors = {}
+          if (result.fieldErrors.email) {
+            newErrors.email = result.fieldErrors.email[0]
           }
+          if (result.fieldErrors.password) {
+            newErrors.password = result.fieldErrors.password[0]
+          }
+          setErrors(newErrors)
+        } else {
+          setErrors({ general: result.error ?? 'Error al iniciar sesión' })
         }
       } catch (error) {
         console.error('Error en login:', error)
