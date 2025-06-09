@@ -1,23 +1,37 @@
-"use client"
+'use client'
 
-import { useState, useMemo, useEffect, useCallback, Suspense } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Search, X, Filter, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
-import Navigation from "@/components/navigation"
-import Footer from "@/components/footer"
-import { SaltoWithExtras } from "@/types/salto"
-import { ApiResponse } from "@/types/database"
-import { PaginatedResponse } from "@/types/pagination"
-import { CldImage } from "next-cloudinary"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { useState, useMemo, useEffect, useCallback, Suspense } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Search, X, Filter, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Slider } from '@/components/ui/slider'
+import { Checkbox } from '@/components/ui/checkbox'
+import Navigation from '@/components/navigation'
+import Footer from '@/components/footer'
+import { SaltoWithExtras } from '@/types/salto'
+import { ApiResponse } from '@/types/database'
+import { PaginatedResponse } from '@/types/pagination'
+import { CldImage } from 'next-cloudinary'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 interface Filters {
@@ -29,11 +43,11 @@ interface Filters {
 }
 
 type SortType =
-  | "nombre-az"
-  | "nombre-za"
-  | "puntuacion-alta"
-  | "puntuacion-baja"
-  | "dificultad"
+  | 'nombre-az'
+  | 'nombre-za'
+  | 'puntuacion-alta'
+  | 'puntuacion-baja'
+  | 'dificultad'
 
 interface ApiFilters {
   search?: string
@@ -49,9 +63,11 @@ interface ApiFilters {
 
 type PaginationItem = number | 'ellipsis-start' | 'ellipsis-end'
 
-const fetchSaltos = async (filters: ApiFilters = {}): Promise<ApiResponse<PaginatedResponse<SaltoWithExtras[]>>> => {
+const fetchSaltos = async (
+  filters: ApiFilters = {},
+): Promise<ApiResponse<PaginatedResponse<SaltoWithExtras[]>>> => {
   const params = new URLSearchParams()
-  
+
   if (filters.search) params.append('search', filters.search)
   if (filters.ubicaciones && filters.ubicaciones.length > 0) {
     params.append('ubicaciones', filters.ubicaciones.join(','))
@@ -59,8 +75,10 @@ const fetchSaltos = async (filters: ApiFilters = {}): Promise<ApiResponse<Pagina
   if (filters.dificultades && filters.dificultades.length > 0) {
     params.append('dificultades', filters.dificultades.join(','))
   }
-  if (filters.puntuacionMin !== undefined) params.append('puntuacionMin', filters.puntuacionMin.toString())
-  if (filters.puntuacionMax !== undefined) params.append('puntuacionMax', filters.puntuacionMax.toString())
+  if (filters.puntuacionMin !== undefined)
+    params.append('puntuacionMin', filters.puntuacionMin.toString())
+  if (filters.puntuacionMax !== undefined)
+    params.append('puntuacionMax', filters.puntuacionMax.toString())
   if (filters.servicios && filters.servicios.length > 0) {
     params.append('infraestructura', filters.servicios.join(','))
   }
@@ -73,7 +91,7 @@ const fetchSaltos = async (filters: ApiFilters = {}): Promise<ApiResponse<Pagina
   if (!response.ok) {
     throw new Error(`Error fetching saltos: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
@@ -83,11 +101,11 @@ const fetchFilterOptions = async (): Promise<{
   servicios: string[]
 }> => {
   const response = await fetch('/api/destinos/filter-options')
-  
+
   if (!response.ok) {
     throw new Error(`Error fetching filter options: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
@@ -115,17 +133,17 @@ function SaltosPageLoader() {
 function SaltosPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const [saltos, setSaltos] = useState<SaltoWithExtras[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState(() => {
-    return searchParams.get('search') || ""
+    return searchParams.get('search') || ''
   })
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(() => {
-    return searchParams.get('search') || ""
+    return searchParams.get('search') || ''
   })
-  const [sortBy, setSortBy] = useState<SortType>("nombre-az")
+  const [sortBy, setSortBy] = useState<SortType>('nombre-az')
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
@@ -134,7 +152,7 @@ function SaltosPage() {
     currentPage: 1,
     limit: 12,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   })
 
   const [filterOptions, setFilterOptions] = useState<{
@@ -144,7 +162,7 @@ function SaltosPage() {
   }>({
     ubicaciones: [],
     dificultades: [],
-    servicios: []
+    servicios: [],
   })
 
   const [filters, setFilters] = useState<Filters>({
@@ -165,7 +183,7 @@ function SaltosPage() {
       } else {
         params.delete('search')
       }
-      
+
       const newUrl = params.toString() ? `?${params.toString()}` : '/saltos'
       router.replace(newUrl, { scroll: false })
     }, 300)
@@ -174,7 +192,7 @@ function SaltosPage() {
   }, [searchTerm, router, searchParams])
 
   useEffect(() => {
-    const search = searchParams.get('search') || ""
+    const search = searchParams.get('search') || ''
     setSearchTerm(search)
     setDebouncedSearchTerm(search)
   }, [searchParams])
@@ -193,7 +211,7 @@ function SaltosPage() {
         setFilterOptions({
           ubicaciones: [],
           dificultades: ['baja', 'media', 'alta', 'extrema'],
-          servicios: []
+          servicios: [],
         })
       }
     }
@@ -203,40 +221,44 @@ function SaltosPage() {
 
   const getSortByApi = useCallback((sortType: SortType): string => {
     switch (sortType) {
-      case "nombre-az":
-        return "nombre_asc"
-      case "nombre-za":
-        return "nombre_desc"
-      case "puntuacion-alta":
-        return "puntuacion_desc"
-      case "puntuacion-baja":
-        return "puntuacion_asc"
-      case "dificultad":
-        return "dificultad_asc"
+      case 'nombre-az':
+        return 'nombre_asc'
+      case 'nombre-za':
+        return 'nombre_desc'
+      case 'puntuacion-alta':
+        return 'puntuacion_desc'
+      case 'puntuacion-baja':
+        return 'puntuacion_asc'
+      case 'dificultad':
+        return 'dificultad_asc'
       default:
-        return "nombre_asc"
+        return 'nombre_asc'
     }
   }, [])
 
   const loadSaltos = useCallback(async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const apiFilters: ApiFilters = {
         search: debouncedSearchTerm || undefined,
-        ubicaciones: filters.ubicaciones.length > 0 ? filters.ubicaciones : undefined,
-        dificultades: filters.dificultades.length > 0 ? filters.dificultades : undefined,
-        puntuacionMin: filters.puntuacionMin > 0 ? filters.puntuacionMin : undefined,
-        puntuacionMax: filters.puntuacionMax < 5 ? filters.puntuacionMax : undefined,
+        ubicaciones:
+          filters.ubicaciones.length > 0 ? filters.ubicaciones : undefined,
+        dificultades:
+          filters.dificultades.length > 0 ? filters.dificultades : undefined,
+        puntuacionMin:
+          filters.puntuacionMin > 0 ? filters.puntuacionMin : undefined,
+        puntuacionMax:
+          filters.puntuacionMax < 5 ? filters.puntuacionMax : undefined,
         servicios: filters.servicios.length > 0 ? filters.servicios : undefined,
         sortBy: getSortByApi(sortBy),
         page: currentPage,
-        limit: pagination.limit
+        limit: pagination.limit,
       }
 
       const response = await fetchSaltos(apiFilters)
-      if(!response?.data) throw Error()
+      if (!response?.data) throw Error()
 
       setSaltos(response.data.data)
       setTotalResults(response.data.pagination.total)
@@ -244,11 +266,22 @@ function SaltosPage() {
       setPagination(response.data.pagination)
     } catch (err) {
       console.error('Error loading saltos:', err)
-      setError(err instanceof Error ? err.message : 'Error desconocido al cargar los saltos')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error desconocido al cargar los saltos',
+      )
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearchTerm, filters, sortBy, pagination.limit, currentPage, getSortByApi])
+  }, [
+    debouncedSearchTerm,
+    filters,
+    sortBy,
+    pagination.limit,
+    currentPage,
+    getSortByApi,
+  ])
 
   useEffect(() => {
     loadSaltos()
@@ -271,8 +304,8 @@ function SaltosPage() {
       puntuacionMax: 5,
       servicios: [],
     })
-    setSearchTerm("")
-    setDebouncedSearchTerm("")
+    setSearchTerm('')
+    setDebouncedSearchTerm('')
     setCurrentPage(1)
   }
 
@@ -306,27 +339,27 @@ function SaltosPage() {
   const generatePaginationItems = () => {
     const items: PaginationItem[] = []
     const maxVisiblePages = 5
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(i)
       }
     } else {
       items.push(1)
-      
+
       const start = Math.max(2, currentPage - 1)
       const end = Math.min(totalPages - 1, currentPage + 1)
-      
+
       if (start > 2) {
         items.push('ellipsis-start')
       }
-      
+
       for (let i = start; i <= end; i++) {
         if (i !== 1 && i !== totalPages) {
           items.push(i)
         }
       }
-      
+
       if (end < totalPages - 1) {
         items.push('ellipsis-end')
       }
@@ -335,14 +368,14 @@ function SaltosPage() {
         items.push(totalPages)
       }
     }
-    
+
     return items
   }
 
   if (loading && saltos.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
-        <Navigation variant="back" currentPage={"saltos"} />
+        <Navigation variant="back" currentPage={'saltos'} />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-teal-500" />
@@ -352,11 +385,11 @@ function SaltosPage() {
       </div>
     )
   }
-  
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
-        <Navigation variant="back" currentPage={"saltos"} />
+        <Navigation variant="back" currentPage={'saltos'} />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <p className="text-red-600 mb-4">Error: {error}</p>
@@ -371,7 +404,7 @@ function SaltosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
-      <Navigation variant="back" currentPage={"saltos"} />
+      <Navigation variant="back" currentPage={'saltos'} />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 py-12 md:py-16 px-4">
@@ -379,12 +412,7 @@ function SaltosPage() {
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <div className="w-64 h-64 mx-auto rounded-full">
-              <Image 
-                src="/logo.png"
-                alt="Logo"
-                height={256}
-                width={256}
-              />
+              <Image src="/logo.png" alt="Logo" height={256} width={256} />
             </div>
           </div>
 
@@ -438,9 +466,9 @@ function SaltosPage() {
               </Button>
 
               {activeFiltersCount > 0 && (
-                <Button 
-                  variant="ghost" 
-                  onClick={clearAllFilters} 
+                <Button
+                  variant="ghost"
+                  onClick={clearAllFilters}
                   className="text-red-600 hover:text-red-700"
                   disabled={loading}
                 >
@@ -459,8 +487,9 @@ function SaltosPage() {
                   </span>
                 ) : (
                   <>
-                    {totalResults} resultado{totalResults !== 1 ? "s" : ""} encontrado
-                    {totalResults !== 1 ? "s" : ""} 
+                    {totalResults} resultado
+                    {totalResults !== 1 ? 's' : ''} encontrado
+                    {totalResults !== 1 ? 's' : ''}
                     {totalResults > 0 && (
                       <span className="text-gray-400">
                         (página {currentPage} de {totalPages})
@@ -469,8 +498,8 @@ function SaltosPage() {
                   </>
                 )}
               </span>
-              <Select 
-                value={sortBy} 
+              <Select
+                value={sortBy}
                 onValueChange={(value: SortType) => setSortBy(value)}
                 disabled={loading}
               >
@@ -480,8 +509,12 @@ function SaltosPage() {
                 <SelectContent>
                   <SelectItem value="nombre-az">Nombre A - Z</SelectItem>
                   <SelectItem value="nombre-za">Nombre Z - A</SelectItem>
-                  <SelectItem value="puntuacion-alta">Puntuación más alta</SelectItem>
-                  <SelectItem value="puntuacion-baja">Puntuación más baja</SelectItem>
+                  <SelectItem value="puntuacion-alta">
+                    Puntuación más alta
+                  </SelectItem>
+                  <SelectItem value="puntuacion-baja">
+                    Puntuación más baja
+                  </SelectItem>
                   <SelectItem value="dificultad">Dificultad</SelectItem>
                 </SelectContent>
               </Select>
@@ -492,26 +525,41 @@ function SaltosPage() {
           {activeFiltersCount > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {filters.ubicaciones.map((ubicacion) => (
-                <Badge key={ubicacion} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={ubicacion}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {ubicacion}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => toggleUbicacion(ubicacion)} 
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleUbicacion(ubicacion)}
                   />
                 </Badge>
               ))}
               {filters.dificultades.map((dificultad) => (
-                <Badge key={dificultad} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={dificultad}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {dificultad}
-                  <X className="h-3 w-3 cursor-pointer" onClick={() => toggleDificultad(dificultad)} />
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleDificultad(dificultad)}
+                  />
                 </Badge>
               ))}
               {filters.servicios.map((servicio) => (
-                <Badge key={servicio} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={servicio}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {servicio}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => toggleServicio(servicio)} 
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => toggleServicio(servicio)}
                   />
                 </Badge>
               ))}
@@ -530,14 +578,20 @@ function SaltosPage() {
                 <h3 className="font-semibold mb-3">Ubicación</h3>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {filterOptions.ubicaciones.map((ubicacion) => (
-                    <div key={ubicacion} className="flex items-center space-x-2">
+                    <div
+                      key={ubicacion}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={`ubicacion-${ubicacion}`}
                         checked={filters.ubicaciones.includes(ubicacion)}
                         onCheckedChange={() => toggleUbicacion(ubicacion)}
                         disabled={loading}
                       />
-                      <label htmlFor={`ubicacion-${ubicacion}`} className="text-sm cursor-pointer">
+                      <label
+                        htmlFor={`ubicacion-${ubicacion}`}
+                        className="text-sm cursor-pointer"
+                      >
                         {ubicacion}
                       </label>
                     </div>
@@ -550,14 +604,20 @@ function SaltosPage() {
                 <h3 className="font-semibold mb-3">Dificultad</h3>
                 <div className="space-y-2">
                   {filterOptions.dificultades.map((dificultad) => (
-                    <div key={dificultad} className="flex items-center space-x-2">
+                    <div
+                      key={dificultad}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={`dificultad-${dificultad}`}
                         checked={filters.dificultades.includes(dificultad)}
                         onCheckedChange={() => toggleDificultad(dificultad)}
                         disabled={loading}
                       />
-                      <label htmlFor={`dificultad-${dificultad}`} className="text-sm cursor-pointer">
+                      <label
+                        htmlFor={`dificultad-${dificultad}`}
+                        className="text-sm cursor-pointer"
+                      >
                         {dificultad}
                       </label>
                     </div>
@@ -577,7 +637,10 @@ function SaltosPage() {
                         onCheckedChange={() => toggleServicio(servicio)}
                         disabled={loading}
                       />
-                      <label htmlFor={`servicio-${servicio}`} className="text-sm cursor-pointer">
+                      <label
+                        htmlFor={`servicio-${servicio}`}
+                        className="text-sm cursor-pointer"
+                      >
                         {servicio}
                       </label>
                     </div>
@@ -593,7 +656,11 @@ function SaltosPage() {
                     <Slider
                       value={[filters.puntuacionMin, filters.puntuacionMax]}
                       onValueChange={([min, max]) =>
-                        setFilters((prev) => ({ ...prev, puntuacionMin: min, puntuacionMax: max }))
+                        setFilters((prev) => ({
+                          ...prev,
+                          puntuacionMin: min,
+                          puntuacionMax: max,
+                        }))
                       }
                       max={5}
                       min={0}
@@ -621,67 +688,90 @@ function SaltosPage() {
               <Loader2 className="h-5 w-5 animate-spin mx-auto text-teal-500" />
             </div>
           )}
-          {Array.isArray(saltos) && saltos.map((salto) => (
-            <Card key={salto.id_destino} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-0">
-                <div className="flex flex-col md:flex-row">
-                  {/* Image */}
-                  <div className="relative h-48 md:h-40 md:w-64 flex-shrink-0">
-                    {salto.url_imagen ? ( 
-                      <CldImage src={salto.url_imagen} alt={salto.nombre} fill className="object-cover" />
-                    ) :
-                      <Image src="/placeholder.svg" alt={salto.nombre} fill className="object-cover" />
-                    }
-                  </div>
-                  {/* Content */}
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">{salto.nombre}</h3>
-                      <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-4 line-clamp-3">
-                        {salto.descripcion}
-                      </p>
-                      {/* Metadata */}
-                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-500 mb-4">
-                        <span>
-                          <strong>Ubicación:</strong> {salto.ubicacion}
-                        </span>
-                        <span>
-                          <strong>Dificultad:</strong> {salto.dificultad}
-                        </span>
-                        <span>
-                          <strong>Puntuación:</strong> {salto.puntuacion}/5
-                        </span>
-                      </div>
-                      {/* Servicios */}
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {Array.isArray(salto.infraestructura) && salto.infraestructura.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-4">
-                            {salto.infraestructura.slice(0, 3).map((servicio) => (
-                              <Badge key={servicio} variant="outline" className="text-xs">
-                                {servicio}
-                              </Badge>
-                            ))}
-                            {salto.infraestructura.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{salto.infraestructura.length - 3} más
-                              </Badge>
+          {Array.isArray(saltos)
+            && saltos.map((salto) => (
+              <Card
+                key={salto.id_destino}
+                className="overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              >
+                <CardContent className="p-0">
+                  <div className="flex flex-col md:flex-row">
+                    {/* Image */}
+                    <div className="relative h-48 md:h-40 md:w-64 flex-shrink-0">
+                      {salto.url_imagen ? (
+                        <CldImage
+                          src={salto.url_imagen}
+                          alt={salto.nombre}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src="/placeholder.svg"
+                          alt={salto.nombre}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                    {/* Content */}
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                          {salto.nombre}
+                        </h3>
+                        <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-4 line-clamp-3">
+                          {salto.descripcion}
+                        </p>
+                        {/* Metadata */}
+                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-500 mb-4">
+                          <span>
+                            <strong>Ubicación:</strong> {salto.ubicacion}
+                          </span>
+                          <span>
+                            <strong>Dificultad:</strong> {salto.dificultad}
+                          </span>
+                          <span>
+                            <strong>Puntuación:</strong> {salto.puntuacion}/5
+                          </span>
+                        </div>
+                        {/* Servicios */}
+                        <div className="flex flex-wrap gap-1 mb-4">
+                          {Array.isArray(salto.infraestructura)
+                            && salto.infraestructura.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-4">
+                                {salto.infraestructura
+                                  .slice(0, 3)
+                                  .map((servicio) => (
+                                    <Badge
+                                      key={servicio}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {servicio}
+                                    </Badge>
+                                  ))}
+                                {salto.infraestructura.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{salto.infraestructura.length - 3} más
+                                  </Badge>
+                                )}
+                              </div>
                             )}
-                          </div>
-                        )}
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <Link href={`/salto/${salto.id_destino}`}>
+                          <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-full px-6">
+                            Ver Más
+                          </Button>
+                        </Link>
                       </div>
                     </div>
-                    <div className="flex justify-end">
-                      <Link href={`/salto/${salto.id_destino}`}>
-                        <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-full px-6">
-                          Ver Más
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
 
           {/* Pagination */}
           {totalPages > 1 && !loading && (
@@ -689,12 +779,18 @@ function SaltosPage() {
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                      className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    <PaginationPrevious
+                      onClick={() =>
+                        currentPage > 1 && setCurrentPage(currentPage - 1)
+                      }
+                      className={
+                        currentPage <= 1
+                          ? 'pointer-events-none opacity-50'
+                          : 'cursor-pointer'
+                      }
                     />
                   </PaginationItem>
-                  
+
                   {generatePaginationItems().map((item, index) => (
                     <PaginationItem key={index}>
                       {item === 'ellipsis-start' || item === 'ellipsis-end' ? (
@@ -710,11 +806,18 @@ function SaltosPage() {
                       )}
                     </PaginationItem>
                   ))}
-                  
+
                   <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                      className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    <PaginationNext
+                      onClick={() =>
+                        currentPage < totalPages
+                        && setCurrentPage(currentPage + 1)
+                      }
+                      className={
+                        currentPage >= totalPages
+                          ? 'pointer-events-none opacity-50'
+                          : 'cursor-pointer'
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -728,26 +831,36 @@ function SaltosPage() {
                 {/* Icono ilustrativo */}
                 <div className="mb-6">
                   <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
-                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" 
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    <svg
+                      className="w-10 h-10 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.5"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* Mensaje principal */}
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   No encontramos saltos
                 </h3>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  No hay saltos que coincidan con los filtros aplicados. 
-                  Intenta ajustar tus criterios de búsqueda o explora todas las opciones disponibles.
+                  No hay saltos que coincidan con los filtros aplicados. Intenta
+                  ajustar tus criterios de búsqueda o explora todas las opciones
+                  disponibles.
                 </p>
-                
+
                 {/* Botones de acción */}
                 <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={clearAllFilters}
                     className="w-full border-teal-500 text-teal-600 hover:bg-teal-50"
                   >
@@ -767,4 +880,3 @@ function SaltosPage() {
     </div>
   )
 }
-

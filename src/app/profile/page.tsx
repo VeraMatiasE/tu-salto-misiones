@@ -1,15 +1,15 @@
-import { logOut } from "@/actions/auth";
-import { createSupabaseClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import React from "react";
+import { logOut } from '@/actions/auth'
+import { createSupabaseClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import React from 'react'
 
 const Profile = async () => {
-  const supabase = await createSupabaseClient();
+  const supabase = await createSupabaseClient()
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
-  if (error) redirect("/error");
+  } = await supabase.auth.getUser()
+  if (error) redirect('/error')
   return (
     <main className="flex items-center justify-center min-h-screen">
       <form className="flex flex-col gap-5 w-1/4">
@@ -22,7 +22,7 @@ const Profile = async () => {
         </button>
       </form>
     </main>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile

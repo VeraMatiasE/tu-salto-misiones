@@ -1,8 +1,14 @@
-import { createSupabaseClient } from "@/utils/supabase/server"
-import type { Usuario, ApiResponse } from "@/types/database"
-import { PaginatedResponse, PaginationMeta, PaginationParams } from "@/types/pagination"
+import { createSupabaseClient } from '@/utils/supabase/server'
+import type { Usuario, ApiResponse } from '@/types/database'
+import {
+  PaginatedResponse,
+  PaginationMeta,
+  PaginationParams,
+} from '@/types/pagination'
 
-export async function getUsuarios(params: PaginationParams = {}): Promise<ApiResponse<PaginatedResponse<Usuario[]>>> {
+export async function getUsuarios(
+  params: PaginationParams = {},
+): Promise<ApiResponse<PaginatedResponse<Usuario[]>>> {
   try {
     const supabase = await createSupabaseClient()
     const {
@@ -10,15 +16,15 @@ export async function getUsuarios(params: PaginationParams = {}): Promise<ApiRes
       limit = 10,
       search = '',
       orderBy = 'fecha_registro',
-      orderDirection = 'desc'
+      orderDirection = 'desc',
     } = await params
 
     const offset = (page - 1) * limit
 
     let query = supabase
-      .from("usuarios")
-      .select("*", { count: 'exact' })
-      .eq("estatus", true)
+      .from('usuarios')
+      .select('*', { count: 'exact' })
+      .eq('estatus', true)
 
     // Aplicar búsqueda si existe
     if (search.trim()) {
@@ -29,7 +35,7 @@ export async function getUsuarios(params: PaginationParams = {}): Promise<ApiRes
     query = query
       .order(orderBy, { ascending: orderDirection === 'asc' })
       .range(offset, offset + limit - 1)
-    
+
     const { data, error, count } = await query
 
     if (error) throw error
@@ -43,33 +49,38 @@ export async function getUsuarios(params: PaginationParams = {}): Promise<ApiRes
       total: totalCount,
       limit,
       hasNextPage: page < totalPages,
-      hasPrevPage: page > 1
+      hasPrevPage: page > 1,
     }
 
     return {
       success: true,
       data: {
         data: data as Usuario[],
-        pagination
-      }
+        pagination,
+      },
     }
   } catch (error) {
-    console.error("Error al obtener usuarios:", error)
+    console.error('Error al obtener usuarios:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Error desconocido al obtener usuarios",
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error desconocido al obtener usuarios',
     }
   }
 }
 
-export async function getUsuarioById(id: number): Promise<ApiResponse<Usuario>> {
+export async function getUsuarioById(
+  id: number,
+): Promise<ApiResponse<Usuario>> {
   try {
     const supabase = await createSupabaseClient()
     const { data, error } = await supabase
-      .from("usuarios")
-      .select("*")
-      .eq("id_usuario", id)
-      .eq("estatus", true)
+      .from('usuarios')
+      .select('*')
+      .eq('id_usuario', id)
+      .eq('estatus', true)
       .single()
 
     if (error) throw error
@@ -82,15 +93,25 @@ export async function getUsuarioById(id: number): Promise<ApiResponse<Usuario>> 
     console.error(`Error al obtener usuario con ID ${id}:`, error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : `Error desconocido al obtener usuario con ID ${id}`,
+      error:
+        error instanceof Error
+          ? error.message
+          : `Error desconocido al obtener usuario con ID ${id}`,
     }
   }
 }
 
-export async function getUsuarioByEmail(email: string): Promise<ApiResponse<Usuario>> {
+export async function getUsuarioByEmail(
+  email: string,
+): Promise<ApiResponse<Usuario>> {
   try {
     const supabase = await createSupabaseClient()
-    const { data, error } = await supabase.from("usuarios").select("*").eq("email", email).eq("estatus", true).single()
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .eq('estatus', true)
+      .single()
 
     if (error) throw error
 
@@ -102,18 +123,24 @@ export async function getUsuarioByEmail(email: string): Promise<ApiResponse<Usua
     console.error(`Error al obtener usuario con email ${email}:`, error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : `Error desconocido al obtener usuario con email ${email}`,
+      error:
+        error instanceof Error
+          ? error.message
+          : `Error desconocido al obtener usuario con email ${email}`,
     }
   }
 }
 
 export async function createUsuario(
-  usuario: Omit<Usuario, "id_usuario" | "fecha_registro" | "fecha_actualizacion">,
+  usuario: Omit<
+    Usuario,
+    'id_usuario' | 'fecha_registro' | 'fecha_actualizacion'
+  >,
 ): Promise<ApiResponse<Usuario>> {
   try {
     const supabase = await createSupabaseClient()
     const { data, error } = await supabase
-      .from("usuarios")
+      .from('usuarios')
       .insert([{ ...usuario }])
       .select()
       .single()
@@ -123,27 +150,33 @@ export async function createUsuario(
     return {
       success: true,
       data: data as Usuario,
-      message: "Usuario creado exitosamente",
+      message: 'Usuario creado exitosamente',
     }
   } catch (error) {
-    console.error("Error al crear usuario:", error)
+    console.error('Error al crear usuario:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Error desconocido al crear usuario",
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error desconocido al crear usuario',
     }
   }
 }
 
-export async function updateUsuario(id: number, usuario: Partial<Usuario>): Promise<ApiResponse<Usuario>> {
+export async function updateUsuario(
+  id: number,
+  usuario: Partial<Usuario>,
+): Promise<ApiResponse<Usuario>> {
   try {
     const supabase = await createSupabaseClient()
     const { data, error } = await supabase
-      .from("usuarios")
+      .from('usuarios')
       .update({
         ...usuario,
         fecha_actualizacion: new Date().toISOString(),
       })
-      .eq("id_usuario", id)
+      .eq('id_usuario', id)
       .select()
       .single()
 
@@ -152,13 +185,16 @@ export async function updateUsuario(id: number, usuario: Partial<Usuario>): Prom
     return {
       success: true,
       data: data as Usuario,
-      message: "Usuario actualizado exitosamente",
+      message: 'Usuario actualizado exitosamente',
     }
   } catch (error) {
     console.error(`Error al actualizar usuario con ID ${id}:`, error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : `Error desconocido al actualizar usuario con ID ${id}`,
+      error:
+        error instanceof Error
+          ? error.message
+          : `Error desconocido al actualizar usuario con ID ${id}`,
     }
   }
 }
@@ -168,24 +204,27 @@ export async function deleteUsuario(id: number): Promise<ApiResponse<null>> {
     const supabase = await createSupabaseClient()
     // Soft delete - solo actualizamos el estatus a false
     const { error } = await supabase
-      .from("usuarios")
+      .from('usuarios')
       .update({
         estatus: false,
         fecha_actualizacion: new Date().toISOString(),
       })
-      .eq("id_usuario", id)
+      .eq('id_usuario', id)
 
     if (error) throw error
 
     return {
       success: true,
-      message: "Usuario eliminado exitosamente",
+      message: 'Usuario eliminado exitosamente',
     }
   } catch (error) {
     console.error(`Error al eliminar usuario con ID ${id}:`, error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : `Error desconocido al eliminar usuario con ID ${id}`,
+      error:
+        error instanceof Error
+          ? error.message
+          : `Error desconocido al eliminar usuario con ID ${id}`,
     }
   }
 }

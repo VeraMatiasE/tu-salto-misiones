@@ -1,5 +1,5 @@
-import type React from "react"
-import { DashboardSidebar } from "@/components/admin-sidebar"
+import type React from 'react'
+import { DashboardSidebar } from '@/components/admin-sidebar'
 
 export default function DashboardLayout({
   children,

@@ -4,14 +4,37 @@ import { ImagenesList } from '@/components/imagenes-list'
 import { ImagenesDestino } from '@/types/imagenes'
 
 jest.mock('next-cloudinary', () => ({
-  CldImage: ({ src, alt, fill, ...props }: { src: string; alt: string; fill: boolean; [key: string]: unknown }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} data-fill={fill} {...props} data-testid="cld-image" />
+  CldImage: ({
+    src,
+    alt,
+    fill,
+    ...props
+  }: {
+    src: string
+    alt: string
+    fill: boolean
+    [key: string]: unknown
+  }) => (
+    <img
+      src={src}
+      alt={alt}
+      data-fill={fill}
+      {...props}
+      data-testid="cld-image"
+    />
   ),
 }))
 
 jest.mock('next/link', () => {
-  return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) {
+  return function MockLink({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode
+    href: string
+    [key: string]: unknown
+  }) {
     return (
       <a href={href} {...props}>
         {children}
@@ -27,7 +50,7 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 }))
 
 describe('ImagenesList', () => {
-  const mockDate = new Date().toISOString();
+  const mockDate = new Date().toISOString()
 
   const mockImagenesDestino: ImagenesDestino[] = [
     {
@@ -36,19 +59,22 @@ describe('ImagenesList', () => {
       imagenes: [
         {
           id_imagen: '1',
-          url_imagen: 'https://res.cloudinary.com/demo/image/upload/v1/sample1.jpg',
+          url_imagen:
+            'https://res.cloudinary.com/demo/image/upload/v1/sample1.jpg',
           fecha_actualizacion: mockDate,
           public_id: 'sample1.jpg',
         },
         {
           id_imagen: '2',
-          url_imagen: 'https://res.cloudinary.com/demo/image/upload/v1/sample2.jpg',
+          url_imagen:
+            'https://res.cloudinary.com/demo/image/upload/v1/sample2.jpg',
           fecha_actualizacion: mockDate,
           public_id: 'sample2.jpg',
         },
         {
           id_imagen: '3',
-          url_imagen: 'https://res.cloudinary.com/demo/image/upload/v1/sample3.jpg',
+          url_imagen:
+            'https://res.cloudinary.com/demo/image/upload/v1/sample3.jpg',
           fecha_actualizacion: mockDate,
           public_id: 'sample3.jpg',
         },
@@ -60,7 +86,8 @@ describe('ImagenesList', () => {
       imagenes: [
         {
           id_imagen: '4',
-          url_imagen: 'https://res.cloudinary.com/demo/image/upload/v1/sample4.jpg',
+          url_imagen:
+            'https://res.cloudinary.com/demo/image/upload/v1/sample4.jpg',
           fecha_actualizacion: mockDate,
           public_id: 'sample4.jpg',
         },
@@ -76,7 +103,7 @@ describe('ImagenesList', () => {
   describe('Renderizado inicial', () => {
     it('debe renderizar todos los destinos proporcionados', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       expect(screen.getByText('Salto del Arcoíris')).toBeInTheDocument()
       expect(screen.getByText('Salto Encantado')).toBeInTheDocument()
       expect(screen.getByText('Salto Sin Imágenes')).toBeInTheDocument()
@@ -84,7 +111,7 @@ describe('ImagenesList', () => {
 
     it('debe mostrar el contador de imágenes correctamente', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       expect(screen.getByText('3 imágenes')).toBeInTheDocument()
       expect(screen.getByText('1 imagen')).toBeInTheDocument()
       expect(screen.getByText('0 imágenes')).toBeInTheDocument()
@@ -92,7 +119,7 @@ describe('ImagenesList', () => {
 
     it('debe renderizar botones de gestionar imágenes para todos los destinos', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const buttons = screen.getAllByText('Gestionar imágenes')
       expect(buttons).toHaveLength(3)
     })
@@ -101,29 +128,40 @@ describe('ImagenesList', () => {
   describe('Manejo de imágenes', () => {
     it('debe mostrar la primera imagen como imagen principal cuando hay imágenes', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const mainImages = screen.getAllByTestId('cld-image')
-      
-      expect(mainImages[0]).toHaveAttribute('src', 'https://res.cloudinary.com/demo/image/upload/v1/sample1.jpg')
+
+      expect(mainImages[0]).toHaveAttribute(
+        'src',
+        'https://res.cloudinary.com/demo/image/upload/v1/sample1.jpg',
+      )
       expect(mainImages[0]).toHaveAttribute('alt', 'Salto del Arcoíris')
-      
-      expect(mainImages[4]).toHaveAttribute('src', 'https://res.cloudinary.com/demo/image/upload/v1/sample4.jpg')
+
+      expect(mainImages[4]).toHaveAttribute(
+        'src',
+        'https://res.cloudinary.com/demo/image/upload/v1/sample4.jpg',
+      )
       expect(mainImages[4]).toHaveAttribute('alt', 'Salto Encantado')
     })
 
     it('debe mostrar icono placeholder cuando no hay imágenes', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const placeholderIcon = screen.getByLabelText('placeholder')
       expect(placeholderIcon).toBeInTheDocument()
-      expect(placeholderIcon).toHaveClass('h-12', 'w-12', 'text-muted-foreground', 'opacity-50')
+      expect(placeholderIcon).toHaveClass(
+        'h-12',
+        'w-12',
+        'text-muted-foreground',
+        'opacity-50',
+      )
     })
 
     it('debe mostrar thumbnails adicionales cuando hay múltiples imágenes', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const allImages = screen.getAllByTestId('cld-image')
-      
+
       // Salto del Arcoíris debe tener 1 imagen principal + 3 thumbnails = 4 total
       // Salto Encantado debe tener 1 imagen principal + 1 thumbnail = 2 total
       // Salto Sin Imágenes debe tener 0 imágenes
@@ -145,7 +183,7 @@ describe('ImagenesList', () => {
       ]
 
       render(<ImagenesList imagenes_saltos={destinoConMuchasImagenes} />)
-      
+
       const allImages = screen.getAllByTestId('cld-image')
       // Debe mostrar 1 imagen principal + 4 thumbnails máximo = 5 total
       expect(allImages).toHaveLength(5)
@@ -153,12 +191,13 @@ describe('ImagenesList', () => {
 
     it('debe mostrar thumbnails con aspect ratio cuadrado', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
-      const thumbnailContainers = screen.getAllByTestId('cld-image')
+
+      const thumbnailContainers = screen
+        .getAllByTestId('cld-image')
         .slice(1, 4) // Los thumbnails del primer destino
-        .map(img => img.parentElement)
-      
-      thumbnailContainers.forEach(container => {
+        .map((img) => img.parentElement)
+
+      thumbnailContainers.forEach((container) => {
         expect(container).toHaveClass('aspect-square')
       })
     })
@@ -167,9 +206,9 @@ describe('ImagenesList', () => {
   describe('Navegación', () => {
     it('debe crear enlaces correctos para gestionar imágenes', () => {
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const links = screen.getAllByRole('link')
-      
+
       expect(links[0]).toHaveAttribute('href', '/dashboard/imagenes/1')
       expect(links[1]).toHaveAttribute('href', '/dashboard/imagenes/2')
       expect(links[2]).toHaveAttribute('href', '/dashboard/imagenes/3')
@@ -178,11 +217,11 @@ describe('ImagenesList', () => {
     it('debe hacer los botones de gestionar imágenes clickeables', async () => {
       const user = userEvent.setup()
       render(<ImagenesList imagenes_saltos={mockImagenesDestino} />)
-      
+
       const firstButton = screen.getAllByText('Gestionar imágenes')[0]
-      
+
       await user.click(firstButton)
-      
+
       expect(firstButton).toBeInTheDocument()
     })
   })
@@ -190,7 +229,7 @@ describe('ImagenesList', () => {
   describe('Casos edge', () => {
     it('debe manejar lista vacía de destinos', () => {
       render(<ImagenesList imagenes_saltos={[]} />)
-      
+
       expect(screen.queryByText('Gestionar imágenes')).not.toBeInTheDocument()
     })
 
@@ -204,7 +243,7 @@ describe('ImagenesList', () => {
       ]
 
       render(<ImagenesList imagenes_saltos={destinosConNombresVacios} />)
-      
+
       expect(screen.getByText('Gestionar imágenes')).toBeInTheDocument()
       expect(screen.getByText('0 imágenes')).toBeInTheDocument()
     })

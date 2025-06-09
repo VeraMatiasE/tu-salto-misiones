@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from 'react'
 
 export function useMobileMenu() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -24,10 +24,10 @@ export function useMobileMenu() {
       timeoutId = setTimeout(checkIfMobile, 150)
     }
 
-    window.addEventListener("resize", debouncedResize)
+    window.addEventListener('resize', debouncedResize)
 
     return () => {
-      window.removeEventListener("resize", debouncedResize)
+      window.removeEventListener('resize', debouncedResize)
       clearTimeout(timeoutId)
     }
   }, [isInitialized])
@@ -51,7 +51,7 @@ export function useMobileMenu() {
   }, [isMobileMenuOpen])
 
   const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev)
+    setIsMobileMenuOpen((prev) => !prev)
   }, [])
 
   const closeMobileMenu = useCallback(() => {

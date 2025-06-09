@@ -1,26 +1,35 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ImageIcon, Plus } from "lucide-react"
-import { ImagenesDestino } from "@/types/imagenes"
-import { CldImage } from "next-cloudinary"
+import Link from 'next/link'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ImageIcon, Plus } from 'lucide-react'
+import { ImagenesDestino } from '@/types/imagenes'
+import { CldImage } from 'next-cloudinary'
 
 type ImagenesListProps = {
   imagenes_saltos: ImagenesDestino[]
 }
 
 export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {imagenes_saltos.map((imagenes_salto) => (
         <Card key={imagenes_salto.id_destino} className="overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="font-title">{imagenes_salto.nombre}</CardTitle>
+            <CardTitle className="font-title">
+              {imagenes_salto.nombre}
+            </CardTitle>
             <CardDescription className="font-text">
-              {imagenes_salto.imagenes.length} {imagenes_salto.imagenes.length === 1 ? "imagen" : "imágenes"}
+              {imagenes_salto.imagenes.length}{' '}
+              {imagenes_salto.imagenes.length === 1 ? 'imagen' : 'imágenes'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
@@ -34,14 +43,20 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <ImageIcon aria-label="placeholder" className="h-12 w-12 text-muted-foreground opacity-50" />
+                  <ImageIcon
+                    aria-label="placeholder"
+                    className="h-12 w-12 text-muted-foreground opacity-50"
+                  />
                 </div>
               )}
             </div>
             {imagenes_salto.imagenes.length > 0 && (
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {imagenes_salto.imagenes.slice(0, 4).map((imagen) => (
-                  <div key={imagen.id_imagen} className="relative aspect-square rounded-md overflow-hidden bg-muted">
+                  <div
+                    key={imagen.id_imagen}
+                    className="relative aspect-square rounded-md overflow-hidden bg-muted"
+                  >
                     <CldImage
                       src={imagen.url_imagen}
                       alt=""
@@ -54,7 +69,10 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
             )}
           </CardContent>
           <CardFooter>
-            <Link href={`/dashboard/imagenes/${imagenes_salto.id_destino}`} className="w-full">
+            <Link
+              href={`/dashboard/imagenes/${imagenes_salto.id_destino}`}
+              className="w-full"
+            >
               <Button variant="outline" className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Gestionar imágenes

@@ -20,8 +20,8 @@ describe('UsuariosList', () => {
   const mockPush = jest.fn()
   const mockRefresh = jest.fn()
 
-  const mockDate = new Date().toISOString();
-  
+  const mockDate = new Date().toISOString()
+
   const mockUsuarios = [
     {
       id_usuario: '1',
@@ -45,7 +45,7 @@ describe('UsuariosList', () => {
       fecha_registro: mockDate,
     },
   ]
-  
+
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useRouter as jest.Mock).mockReturnValue({
@@ -59,7 +59,7 @@ describe('UsuariosList', () => {
   describe('Renderizado inicial', () => {
     it('debe renderizar la tabla con headers correctos', () => {
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
+
       expect(screen.getByText('Nombre')).toBeInTheDocument()
       expect(screen.getByText('Email')).toBeInTheDocument()
       expect(screen.getByText('Rol')).toBeInTheDocument()
@@ -68,7 +68,7 @@ describe('UsuariosList', () => {
 
     it('debe renderizar todos los usuarios proporcionados', () => {
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
+
       expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
       expect(screen.getByText('juan@ejemplo.com')).toBeInTheDocument()
       expect(screen.getByText('María García')).toBeInTheDocument()
@@ -79,26 +79,32 @@ describe('UsuariosList', () => {
 
     it('debe mostrar los roles correctamente', () => {
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
+
       const adminBadges = screen.getAllByText('Administrador')
       const usuarioBadges = screen.getAllByText('Usuario')
-      
+
       expect(adminBadges).toHaveLength(2)
-      expect(usuarioBadges).toHaveLength(1) 
+      expect(usuarioBadges).toHaveLength(1)
     })
 
     it('debe mostrar mensaje cuando no hay usuarios', () => {
       render(<UsuariosList usuarios={[]} />)
-      
-      expect(screen.getByText('No hay usuarios registrados.')).toBeInTheDocument()
+
+      expect(
+        screen.getByText('No hay usuarios registrados.'),
+      ).toBeInTheDocument()
     })
 
     it('debe renderizar botones de editar y eliminar para cada usuario', () => {
       render(<UsuariosList usuarios={mockUsuarios} />)
 
-      const editButtons = screen.getAllByRole('button', { name: /editar/i })
-      const deleteButtons = screen.getAllByRole('button', { name: /eliminar/i })
-      
+      const editButtons = screen.getAllByRole('button', {
+        name: /editar/i,
+      })
+      const deleteButtons = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })
+
       expect(editButtons).toHaveLength(3)
       expect(deleteButtons).toHaveLength(3)
     })
@@ -107,8 +113,10 @@ describe('UsuariosList', () => {
   describe('Funcionalidad de edición', () => {
     it('debe tener el href correcto en el enlace de editar', async () => {
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstEditLink = screen.getAllByRole('link', { name: /editar/i })[0]
+
+      const firstEditLink = screen.getAllByRole('link', {
+        name: /editar/i,
+      })[0]
       expect(firstEditLink).toHaveAttribute('href', '/dashboard/usuarios/1')
     })
   })
@@ -117,26 +125,40 @@ describe('UsuariosList', () => {
     it('debe mostrar dialog de confirmación al hacer clic en eliminar', async () => {
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
+
       expect(screen.getByText('¿Estás seguro?')).toBeInTheDocument()
-      expect(screen.getByText(/Esta acción no se puede deshacer.*Juan Pérez/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Eliminar definitivamente' })).toBeInTheDocument()
+      expect(
+        screen.getByText(/Esta acción no se puede deshacer.*Juan Pérez/),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Cancelar' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', {
+          name: 'Eliminar definitivamente',
+        }),
+      ).toBeInTheDocument()
     })
 
     it('debe cerrar dialog al hacer clic en cancelar', async () => {
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const cancelButton = screen.getByRole('button', { name: 'Cancelar' })
+
+      const cancelButton = screen.getByRole('button', {
+        name: 'Cancelar',
+      })
       await user.click(cancelButton)
-      
+
       await waitFor(() => {
         expect(screen.queryByText('¿Estás seguro?')).not.toBeInTheDocument()
       })
@@ -150,13 +172,17 @@ describe('UsuariosList', () => {
 
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith('/api/usuarios/1', {
           method: 'DELETE',
@@ -175,14 +201,23 @@ describe('UsuariosList', () => {
       })
 
       const user = userEvent.setup()
-      render(<UsuariosList usuarios={mockUsuarios} onUsuarioDeleted={mockOnUsuarioDeleted} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+      render(
+        <UsuariosList
+          usuarios={mockUsuarios}
+          onUsuarioDeleted={mockOnUsuarioDeleted}
+        />,
+      )
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
         expect(mockOnUsuarioDeleted).toHaveBeenCalledWith('1')
       })
@@ -196,13 +231,17 @@ describe('UsuariosList', () => {
 
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
         expect(mockRefresh).toHaveBeenCalled()
       })
@@ -218,15 +257,21 @@ describe('UsuariosList', () => {
 
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
-        expect(alert).toHaveBeenCalledWith('Error al eliminar juan@ejemplo.com: Error 500: Internal Server Error')
+        expect(alert).toHaveBeenCalledWith(
+          'Error al eliminar juan@ejemplo.com: Error 500: Internal Server Error',
+        )
       })
     })
 
@@ -240,15 +285,21 @@ describe('UsuariosList', () => {
 
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
-        expect(alert).toHaveBeenCalledWith('Error al eliminar juan@ejemplo.com: Usuario no encontrado')
+        expect(alert).toHaveBeenCalledWith(
+          'Error al eliminar juan@ejemplo.com: Usuario no encontrado',
+        )
       })
     })
 
@@ -262,13 +313,17 @@ describe('UsuariosList', () => {
 
       const user = userEvent.setup()
       render(<UsuariosList usuarios={mockUsuarios} />)
-      
-      const firstDeleteButton = screen.getAllByRole('button', { name: /eliminar/i })[0]
+
+      const firstDeleteButton = screen.getAllByRole('button', {
+        name: /eliminar/i,
+      })[0]
       await user.click(firstDeleteButton)
-      
-      const confirmButton = screen.getByRole('button', { name: 'Eliminar definitivamente' })
+
+      const confirmButton = screen.getByRole('button', {
+        name: 'Eliminar definitivamente',
+      })
       await user.click(confirmButton)
-      
+
       await waitFor(() => {
         expect(alert).toHaveBeenCalled()
       })
@@ -298,7 +353,7 @@ describe('UsuariosList', () => {
       ]
 
       render(<UsuariosList usuarios={usuariosIncompletos} />)
-      
+
       expect(screen.getByText('test@ejemplo.com')).toBeInTheDocument()
       expect(screen.getByText('Usuario Sin Email')).toBeInTheDocument()
     })

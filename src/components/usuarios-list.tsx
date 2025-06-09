@@ -1,10 +1,17 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Edit, Trash2 } from "lucide-react"
+import { useState } from 'react'
+import Link from 'next/link'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Edit, Trash2 } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,23 +22,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Usuario } from "@/types/usuario"
-import { useRouter } from "next/navigation"
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Usuario } from '@/types/usuario'
+import { useRouter } from 'next/navigation'
 
 type UsuariosListProps = {
-  usuarios: Usuario[],
+  usuarios: Usuario[]
   onUsuarioDeleted?: (id: string) => void
 }
 
-export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: UsuariosListProps) {
+export function UsuariosList({
+  usuarios,
+  onUsuarioDeleted: onUsuarioDeleted,
+}: UsuariosListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = async (usuarioId: string, usuarioEmail: string) => {
     setDeletingId(usuarioId)
-    
+
     try {
       const response = await fetch(`/api/usuarios/${usuarioId}`, {
         method: 'DELETE',
@@ -42,7 +52,10 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+        throw new Error(
+          errorData.message
+            || `Error ${response.status}: ${response.statusText}`,
+        )
       }
 
       if (onUsuarioDeleted) {
@@ -50,7 +63,6 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
       } else {
         router.refresh()
       }
-      
     } catch (error) {
       alert(`Error al eliminar ${usuarioEmail}: ${error.message}`)
     } finally {
@@ -74,26 +86,34 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
           <TableBody>
             {usuarios.length === 0 ? (
               <TableRow className="font-text">
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
                   No hay usuarios registrados.
                 </TableCell>
               </TableRow>
             ) : (
               usuarios.map((usuario) => (
                 <TableRow key={usuario.id_usuario} className="font-text">
-                  <TableCell className="font-medium">{usuario.nombre}</TableCell>
+                  <TableCell className="font-medium">
+                    {usuario.nombre}
+                  </TableCell>
                   <TableCell>{usuario.email}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={usuario.rol ? "default" : "secondary"}
-                    >
-                      {usuario.rol ? "Administrador" : "Usuario"}
+                    <Badge variant={usuario.rol ? 'default' : 'secondary'}>
+                      {usuario.rol ? 'Administrador' : 'Usuario'}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(usuario.fecha_registro).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {new Date(usuario.fecha_registro).toLocaleDateString()}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Link aria-label="editar" href={`/dashboard/usuarios/${usuario.id_usuario}`}>
+                      <Link
+                        aria-label="editar"
+                        href={`/dashboard/usuarios/${usuario.id_usuario}`}
+                      >
                         <Button
                           aria-label="editar"
                           variant="outline"
@@ -118,25 +138,28 @@ export function UsuariosList({ usuarios, onUsuarioDeleted: onUsuarioDeleted }: U
                           <AlertDialogHeader>
                             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Se eliminará permanentemente la cuenta de{" "}
-                              {usuario.nombre} y toda su información asociada.
+                              Esta acción no se puede deshacer. Se eliminará
+                              permanentemente la cuenta de {usuario.nombre} y
+                              toda su información asociada.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
-                            className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
-                            onClick={() => handleDelete(usuario.id_usuario, usuario.email)}
-                          >
-                            {deletingId === usuario.id_usuario ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Eliminando...
-                              </>
-                            ) : (
-                              'Eliminar definitivamente'
-                            )}
-                          </AlertDialogAction>
+                              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                              onClick={() =>
+                                handleDelete(usuario.id_usuario, usuario.email)
+                              }
+                            >
+                              {deletingId === usuario.id_usuario ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                  Eliminando...
+                                </>
+                              ) : (
+                                'Eliminar definitivamente'
+                              )}
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>

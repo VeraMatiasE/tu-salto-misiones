@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import { getAllDestinoWithImagenes } from "@/services/imagenes-destino.service"
+import { NextResponse } from 'next/server'
+import { getAllDestinoWithImagenes } from '@/services/imagenes-destino.service'
 
 export async function GET() {
   const response = await getAllDestinoWithImagenes()
