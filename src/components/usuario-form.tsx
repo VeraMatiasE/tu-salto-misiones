@@ -55,13 +55,15 @@ const formSchema = z
     },
   )
 
+type UsuarioData = {
+  id_usuario?: string
+  nombre: string
+  email: string
+  rol: boolean
+}
+
 type UsuarioFormProps = Readonly<{
-  initialData?: {
-    id_usuario?: string
-    nombre: string
-    email: string
-    rol: boolean
-  }
+  initialData?: UsuarioData
 }>
 
 export function UsuarioForm({ initialData }: UsuarioFormProps) {
@@ -144,11 +146,14 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
     }
   }
 
-  const buttonText = isSubmitting
-    ? 'Guardando...'
-    : isEditing
-      ? 'Actualizar'
-      : 'Crear'
+  function getButtonText(
+    isSubmitting: boolean,
+    initialData: UsuarioData | undefined,
+  ): string {
+    if (isSubmitting) return 'Guardando...'
+    if (initialData) return 'Actualizar'
+    return 'Crear'
+  }
 
   return (
     <Form {...form}>
@@ -273,7 +278,7 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting} variant="default">
-            {buttonText}
+            {getButtonText(isSubmitting, initialData)}
           </Button>
         </div>
       </form>

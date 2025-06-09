@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { MapPin } from 'lucide-react'
-import { SaltoFormProps } from '@/types/salto'
+import { Salto, SaltoFormProps } from '@/types/salto'
 
 // Esquema de validación para el formulario
 const formSchema = z.object({
@@ -135,11 +135,14 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
     }
   }
 
-  const buttonText = isSubmitting
-    ? 'Guardando...'
-    : initialData
-      ? 'Actualizar'
-      : 'Crear'
+  function getButtonText(
+    isSubmitting: boolean,
+    initialData: Salto | undefined,
+  ): string {
+    if (isSubmitting) return 'Guardando...'
+    if (initialData) return 'Actualizar'
+    return 'Crear'
+  }
 
   return (
     <Form {...form}>
@@ -385,7 +388,7 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting} variant="default">
-            {buttonText}
+            {getButtonText(isSubmitting, initialData)}
           </Button>
         </div>
       </form>
