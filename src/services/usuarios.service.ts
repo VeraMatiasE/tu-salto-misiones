@@ -17,7 +17,7 @@ export async function getUsuarios(
       search = '',
       orderBy = 'fecha_registro',
       orderDirection = 'desc',
-    } = await params
+    } = params
 
     const offset = (page - 1) * limit
 
@@ -40,7 +40,7 @@ export async function getUsuarios(
 
     if (error) throw error
 
-    const totalCount = count || 0
+    const totalCount = count ?? 0
     const totalPages = Math.ceil(totalCount / limit)
 
     const pagination: PaginationMeta = {

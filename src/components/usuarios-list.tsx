@@ -27,14 +27,14 @@ import { Badge } from '@/components/ui/badge'
 import { Usuario } from '@/types/usuario'
 import { useRouter } from 'next/navigation'
 
-type UsuariosListProps = {
+type UsuariosListProps = Readonly<{
   usuarios: Usuario[]
   onUsuarioDeleted?: (id: string) => void
-}
+}>
 
 export function UsuariosList({
   usuarios,
-  onUsuarioDeleted: onUsuarioDeleted,
+  onUsuarioDeleted,
 }: UsuariosListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -54,7 +54,7 @@ export function UsuariosList({
         const errorData = await response.json().catch(() => ({}))
         throw new Error(
           errorData.message
-            || `Error ${response.status}: ${response.statusText}`,
+            ?? `Error ${response.status}: ${response.statusText}`,
         )
       }
 

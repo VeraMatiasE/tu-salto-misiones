@@ -135,6 +135,12 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
     }
   }
 
+  const buttonText = isSubmitting
+    ? 'Guardando...'
+    : initialData
+      ? 'Actualizar'
+      : 'Crear'
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -379,11 +385,7 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting} variant="default">
-            {isSubmitting
-              ? 'Guardando...'
-              : initialData
-                ? 'Actualizar'
-                : 'Crear'}
+            {buttonText}
           </Button>
         </div>
       </form>

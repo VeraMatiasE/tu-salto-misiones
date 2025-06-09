@@ -97,6 +97,12 @@ export default function Navigation({
     [closeMobileMenu],
   )
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeMobileMenu()
+    }
+  }
+
   const renderMobileMenu = () => {
     if (!isMobileMenuOpen) return null
 
@@ -106,14 +112,24 @@ export default function Navigation({
     return (
       <div
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+        tabIndex={-1}
         onClick={handleBackdropClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') handleKeyDown(e)
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Menú de navegación"
       >
         <div
           className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300"
+          role="document"
+          aria-labelledby="menu-header"
+          tabIndex={0}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') handleKeyDown(e)
+          }}
         >
           <div className="flex flex-col h-full">
             {/* Header del menú */}
@@ -221,7 +237,7 @@ export default function Navigation({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-black">
-                        {userProfile.profile.nombre || 'Usuario'}
+                        {userProfile.profile.nombre ?? 'Usuario'}
                       </p>
                       <p className="text-xs text-gray-600">Cuenta activa</p>
                     </div>

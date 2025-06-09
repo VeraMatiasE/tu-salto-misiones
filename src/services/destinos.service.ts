@@ -124,14 +124,14 @@ export async function getDestinos(
 
     const processedData = rawData.map((destino) => {
       const ratings =
-        destino.resenas?.map((resena) => resena.calificacion) || []
+        destino.resenas?.map((resena) => resena.calificacion) ?? []
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((sum: number, rating: number) => sum + rating, 0)
             / ratings.length
           : 0
 
-      const firstImage = destino.imagenes_destino?.[0]?.public_id || null
+      const firstImage = destino.imagenes_destino?.[0]?.public_id ?? null
 
       let infraestructura: string[] = []
       try {
@@ -167,10 +167,8 @@ export async function getDestinos(
     }
     if (filters?.servicios && filters.servicios.length > 0) {
       filteredData = filteredData.filter((destino) =>
-        filters.servicios!.every(
-          (servicio) =>
-            destino?.infraestructura
-            && destino.infraestructura.includes(servicio),
+        filters.servicios!.every((servicio) =>
+          destino?.infraestructura?.includes(servicio),
         ),
       )
     }
@@ -187,7 +185,7 @@ export async function getDestinos(
             return b.puntuacion - a.puntuacion
           case 'puntuacion_asc':
             return a.puntuacion - b.puntuacion
-          case 'dificultad_asc':
+          case 'dificultad_asc': {
             const difficultyOrder = {
               baja: 1,
               media: 2,
@@ -195,6 +193,7 @@ export async function getDestinos(
               extrema: 4,
             }
             return difficultyOrder[a.dificultad] - difficultyOrder[b.dificultad]
+          }
           default:
             return a.nombre.localeCompare(b.nombre)
         }
@@ -202,8 +201,8 @@ export async function getDestinos(
     }
 
     // Apply pagination
-    const page = filters?.page || 1
-    const limit = filters?.limit || 100
+    const page = filters?.page ?? 1
+    const limit = filters?.limit ?? 100
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit
     const paginatedData = filteredData.slice(startIndex, endIndex)
@@ -264,7 +263,7 @@ export async function getFilterOptions(): Promise<
       ...new Set(
         ubicacionesData?.map((item) => item.ubicacion).filter(Boolean) || [],
       ),
-    ].sort()
+    ].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
 
     const allServicios =
       serviciosData?.flatMap((item) => {
@@ -275,7 +274,9 @@ export async function getFilterOptions(): Promise<
         }
       }) || []
 
-    const servicios = [...new Set(allServicios)].sort()
+    const servicios = [...new Set(allServicios)].sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase()),
+    )
 
     const dificultades = ['baja', 'media', 'alta', 'extrema']
 

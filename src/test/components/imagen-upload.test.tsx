@@ -276,6 +276,10 @@ describe('ImagenUpload', () => {
     })
 
     it('debe mostrar error para archivos con tipo inválido', async () => {
+      let id = 0
+      const spy = jest
+        .spyOn(global.URL, 'createObjectURL')
+        .mockImplementation(() => `mock-blob-url-${id++}`)
       const file = new File(['test'], 'test.txt', { type: 'text/plain' })
       const input = screen.getByLabelText('Seleccionar imágenes')
       input.setAttribute('accept', 'text/plain')
@@ -285,6 +289,7 @@ describe('ImagenUpload', () => {
       await waitFor(() => {
         expect(screen.getByText(/no es una imagen válida/i)).toBeInTheDocument()
       })
+      spy.mockRestore()
     })
 
     it('debe mostrar error para archivos muy grandes', async () => {
@@ -299,6 +304,10 @@ describe('ImagenUpload', () => {
     })
 
     it('debe permitir seleccionar múltiples archivos', async () => {
+      let id = 0
+      const spy = jest
+        .spyOn(global.URL, 'createObjectURL')
+        .mockImplementationOnce(() => `mock-blob-url-${id++}`)
       const files = [
         new File(['test1'], 'test1.jpg', { type: 'image/jpeg' }),
         new File(['test2'], 'test2.png', { type: 'image/png' }),
@@ -313,6 +322,7 @@ describe('ImagenUpload', () => {
       expect(
         screen.getByRole('button', { name: 'Subir (2)' }),
       ).not.toBeDisabled()
+      spy.mockRestore()
     })
   })
 
@@ -337,7 +347,7 @@ describe('ImagenUpload', () => {
       expect(screen.getByTestId('next-image')).toBeInTheDocument()
       expect(screen.getByTestId('next-image')).toHaveAttribute(
         'src',
-        'mock-blob-url',
+        '/placeholder.svg',
       )
     })
 

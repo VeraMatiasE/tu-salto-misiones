@@ -27,10 +27,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { SaltoConId } from '@/types/salto'
 
-type SaltosListProps = {
+type SaltosListProps = Readonly<{
   saltos: SaltoConId[]
   onSaltoDeleted?: (id: string) => void
-}
+}>
 
 export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
   const router = useRouter()
@@ -66,7 +66,7 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(
           errorData.message
-            || `Error ${response.status}: ${response.statusText}`,
+            ?? `Error ${response.status}: ${response.statusText}`,
         )
       }
 

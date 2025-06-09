@@ -553,7 +553,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {previewUrls.map((url, index) => (
                         <div
-                          key={index}
+                          key={url}
                           className="relative aspect-square rounded-md overflow-hidden bg-muted"
                         >
                           <Image

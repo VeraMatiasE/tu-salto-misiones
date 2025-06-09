@@ -342,9 +342,7 @@ function SaltosPage() {
 
     const addPageRange = (start: number, end: number) => {
       for (let i = start; i <= end; i++) {
-        if (i !== 1 && i !== totalPages) {
-          items.push(i)
-        }
+        items.push(i)
       }
     }
 

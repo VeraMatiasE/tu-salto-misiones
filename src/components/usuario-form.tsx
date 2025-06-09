@@ -55,14 +55,14 @@ const formSchema = z
     },
   )
 
-type UsuarioFormProps = {
+type UsuarioFormProps = Readonly<{
   initialData?: {
     id_usuario?: string
     nombre: string
     email: string
     rol: boolean
   }
-}
+}>
 
 export function UsuarioForm({ initialData }: UsuarioFormProps) {
   const router = useRouter()
@@ -96,8 +96,8 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
         const formData = new FormData()
         formData.append('nombre', values.nombre)
         formData.append('email', values.email)
-        formData.append('password', values.password || '')
-        formData.append('repeatPassword', values.repeatPassword || '')
+        formData.append('password', values.password ?? '')
+        formData.append('repeatPassword', values.repeatPassword ?? '')
         formData.append('rol', values.rol.toString())
 
         try {
@@ -114,7 +114,7 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
           router.refresh()
         }
       } else {
-        if (!initialData.id_usuario) throw 'No id'
+        if (!initialData.id_usuario) throw new Error('No id')
 
         const response = await fetch(
           `/api/usuarios/${initialData.id_usuario}`,
@@ -143,6 +143,12 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
       setIsSubmitting(false)
     }
   }
+
+  const buttonText = isSubmitting
+    ? 'Guardando...'
+    : isEditing
+      ? 'Actualizar'
+      : 'Crear'
 
   return (
     <Form {...form}>
@@ -267,7 +273,7 @@ export function UsuarioForm({ initialData }: UsuarioFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting} variant="default">
-            {isSubmitting ? 'Guardando...' : isEditing ? 'Actualizar' : 'Crear'}
+            {buttonText}
           </Button>
         </div>
       </form>

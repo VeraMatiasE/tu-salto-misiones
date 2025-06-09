@@ -13,9 +13,9 @@ export type Salto = {
 export type SaltoConId = Required<Pick<Salto, 'id_destino'>>
   & Omit<Salto, 'id_destino'>
 
-export type SaltoFormProps = {
+export type SaltoFormProps = Readonly<{
   initialData?: Salto
-}
+}>
 
 export type SaltosDestacados = Omit<
   SaltoConId,

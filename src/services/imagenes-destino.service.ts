@@ -157,7 +157,7 @@ export async function uploadImage(
           },
           (error, result) => {
             if (error) reject(error)
-            else resolve(result as UploadApiResponse)
+            else resolve(result!)
           },
         )
         .end(buffer)
