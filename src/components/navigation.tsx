@@ -19,6 +19,7 @@ import { useMobileMenu } from '@/hooks/use-mobile-menu'
 import { CldImage } from 'next-cloudinary'
 import { Usuario } from '@/types/database'
 import { logOut } from '@/actions/auth'
+import { useAuth } from '@/components/auth-wrapper'
 
 interface UserData {
   id: string
@@ -36,7 +37,6 @@ type NavegationPropsMobile = 'inicio' | 'saltos' | 'favoritos'
 type NavigationProps = Readonly<{
   variant?: 'default' | 'back'
   currentPage: NavegationPropsMobile
-  isAuthenticated: boolean
 }>
 
 function useUserProfile(isAuthenticated: boolean) {
@@ -415,10 +415,10 @@ function MobileMenu({
 export default function Navigation({
   variant = 'default',
   currentPage = 'inicio',
-  isAuthenticated = false,
 }: NavigationProps) {
   const { isMobile, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
     useMobileMenu()
+  const { isAuthenticated } = useAuth()
   const { userProfile, loading } = useUserProfile(isAuthenticated)
 
   useEffect(() => {
