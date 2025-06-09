@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 import Navigation from '@/components/navigation'
+import AuthWrapper from '@/components/auth-wrapper'
 
 interface MockLinkProps {
   children: React.ReactNode
@@ -126,7 +127,6 @@ describe('Navigation Component', () => {
     .useMobileMenu as jest.Mock<MockUseMobileMenuReturn, []>
 
   beforeEach(() => {
-    mockFetch.mockClear()
     mockUseMobileMenu.mockReturnValue({
       isMobile: false,
       isMobileMenuOpen: false,
@@ -136,12 +136,6 @@ describe('Navigation Component', () => {
   })
 
   describe('Variante default - Usuario no autenticado', () => {
-    beforeEach(() => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-      })
-    })
-
     test('debe renderizar el título principal', async () => {
       render(<Navigation currentPage="inicio" />)
 
@@ -193,15 +187,16 @@ describe('Navigation Component', () => {
       },
     }
 
-    beforeAll(() => {
-      mockFetch.mockResolvedValue({
+    test('debe mostrar información del usuario cuando está autenticado', async () => {
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockUserProfile),
       })
-    })
-
-    test('debe mostrar información del usuario cuando está autenticado', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('Usuario Test')).toBeInTheDocument()
@@ -210,7 +205,15 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlaces de navegación para usuarios autenticados', async () => {
-      render(<Navigation currentPage="inicio" />)
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockUserProfile),
+      })
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('Inicio')).toBeInTheDocument()
@@ -228,12 +231,18 @@ describe('Navigation Component', () => {
         },
       }
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(userWithPhoto),
-      })
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(userWithPhoto),
+        }),
+      )
 
-      render(<Navigation currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByAltText('Foto de perfil')).toBeInTheDocument()
@@ -245,7 +254,11 @@ describe('Navigation Component', () => {
     test('debe renderizar botón de volver', async () => {
       mockFetch.mockResolvedValueOnce({ ok: false })
 
-      render(<Navigation variant="back" currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation variant="back" currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByTestId('arrow-left-icon')).toBeInTheDocument()
@@ -255,7 +268,11 @@ describe('Navigation Component', () => {
     test('debe tener enlace de navegación hacia atrás', async () => {
       mockFetch.mockResolvedValueOnce({ ok: false })
 
-      render(<Navigation variant="back" currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation variant="back" currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         const backLink = screen.getByLabelText('Volver al inicio')
@@ -272,7 +289,6 @@ describe('Navigation Component', () => {
         toggleMobileMenu: jest.fn(),
         closeMobileMenu: jest.fn(),
       })
-      mockFetch.mockResolvedValueOnce({ ok: false })
     })
 
     test('debe mostrar botón de menú en móvil', async () => {
@@ -313,7 +329,6 @@ describe('Navigation Component', () => {
         toggleMobileMenu: jest.fn(),
         closeMobileMenu,
       })
-      mockFetch.mockResolvedValueOnce({ ok: false })
     })
 
     test('debe renderizar menú móvil cuando está abierto', async () => {
@@ -394,7 +409,11 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar perfil de usuario en menú móvil', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('Usuario Test')).toBeInTheDocument()
@@ -403,7 +422,11 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlace de favoritos para usuarios autenticados', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(screen.getByTestId('star-icon')).toBeInTheDocument()
@@ -413,7 +436,6 @@ describe('Navigation Component', () => {
 
   describe('Página actual', () => {
     beforeEach(() => {
-      mockFetch.mockResolvedValueOnce({ ok: false })
       mockUseMobileMenu.mockReturnValue({
         isMobile: true,
         isMobileMenuOpen: true,
@@ -443,13 +465,19 @@ describe('Navigation Component', () => {
 
   describe('Manejo de errores', () => {
     test('debe manejar errores de fetch correctamente', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
-
       const consoleSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      render(<Navigation currentPage="inicio" />)
+      mockFetch.mockImplementationOnce(() =>
+        Promise.reject(new Error('Network error')),
+      )
+
+      render(
+        <AuthWrapper isAuthenticated={true} user={null}>
+          <Navigation currentPage="inicio" />
+        </AuthWrapper>,
+      )
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(

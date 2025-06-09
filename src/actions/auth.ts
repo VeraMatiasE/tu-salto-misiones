@@ -4,36 +4,74 @@ import { createUsuario } from '@/services/usuarios.service'
 import { createSupabaseClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import z from 'zod'
 
-export async function signUp(formData: FormData) {
-  const supabase = await createSupabaseClient()
-  const credentials = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    repeatPassword: formData.get('repeatPassword') as string,
+const signUpSchema = z
+  .object({
+    email: z
+      .string()
+      .min(1, 'El email es requerido')
+      .email('Ingresa un email válido')
+      .transform((email) => email.toLowerCase().trim()),
+    password: z
+      .string()
+      .min(1, 'La contraseña es requerida')
+      .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    repeatPassword: z.string(),
+    nombre: z.string().optional(),
+    rol: z.union([z.literal('true'), z.literal('false')]).optional(),
+  })
+  .refine((data) => data.password === data.repeatPassword, {
+    path: ['repeatPassword'],
+    message: 'Las contraseñas no coinciden',
+  })
+
+interface SignUpActionResult {
+  success: boolean
+  error?: string
+  fieldErrors?: {
+    email?: string[]
+    password?: string[]
+    repeatPassword?: string[]
   }
-  if (credentials.password !== credentials.repeatPassword) redirect('/error')
+}
 
+export async function signUp(formData: FormData): Promise<SignUpActionResult> {
   try {
-    const { data: authData, error: authError } =
-      await supabase.auth.signUp(credentials)
+    const validationResult = signUpSchema.safeParse({
+      email: formData.get('email'),
+      password: formData.get('password'),
+      repeatPassword: formData.get('repeatPassword'),
+      nombre: formData.get('nombre'),
+      rol: formData.get('rol'),
+    })
 
-    if (authError) {
-      console.error('Error en autenticación:', authError)
-      redirect('/error')
+    if (!validationResult.success) {
+      return {
+        success: false,
+        fieldErrors: validationResult.error.flatten().fieldErrors,
+      }
     }
 
-    if (!authData?.user?.email) {
-      redirect('/error')
+    const { email, password, nombre, rol } = validationResult.data
+    const supabase = await createSupabaseClient()
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (authError || !authData?.user?.email) {
+      console.error('Error en autenticación:', authError)
+      return {
+        success: false,
+        error: 'No se pudo registrar el usuario',
+      }
     }
 
     const { error: dbError } = await createUsuario({
-      nombre:
-        formData.get('nombre') == null
-          ? ''
-          : (formData.get('nombre') as string),
+      nombre: nombre ?? '',
       email: authData.user.email,
-      rol: formData.get('rol') !== null && formData.get('rol') !== 'false',
+      rol: rol === 'true',
       uid_usuario: authData.user.id,
       contrasena: '',
       foto_perfil: null,
@@ -44,28 +82,106 @@ export async function signUp(formData: FormData) {
     if (dbError) {
       console.error('Error creando usuario en tabla:', dbError)
       await supabase.auth.admin.deleteUser(authData.user.id)
-      redirect('/error')
+      return {
+        success: false,
+        error: 'Error al guardar los datos del usuario',
+      }
     }
 
     revalidatePath('/', 'layout')
-    redirect('/profile')
+    return { success: true }
   } catch (error) {
-    console.error('Error inesperado:', error)
-    redirect('/error')
+    console.error('Error inesperado en registro:', error)
+    return {
+      success: false,
+      error: 'Ocurrió un error inesperado. Intenta nuevamente.',
+    }
   }
 }
 
-export async function logIn(formData: FormData) {
-  const supabase = await createSupabaseClient()
-  const credentials = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'El email es requerido')
+    .email('Ingresa un email válido')
+    .transform((email) => email.toLowerCase().trim()),
+  password: z
+    .string()
+    .min(1, 'La contraseña es requerida')
+    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+})
 
-  const { error } = await supabase.auth.signInWithPassword(credentials)
-  if (error) redirect('/error')
-  revalidatePath('/', 'layout')
-  redirect('/profile')
+interface LoginActionResult {
+  success: boolean
+  error?: string
+  fieldErrors?: {
+    email?: string[]
+    password?: string[]
+  }
+}
+
+export async function logIn(formData: FormData): Promise<LoginActionResult> {
+  try {
+    const validationResult = loginSchema.safeParse({
+      email: formData.get('email'),
+      password: formData.get('password'),
+    })
+
+    if (!validationResult.success) {
+      return {
+        success: false,
+        fieldErrors: validationResult.error.flatten().fieldErrors,
+      }
+    }
+
+    const { email, password } = validationResult.data
+
+    const supabase = await createSupabaseClient()
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      let errorMessage: string
+
+      switch (error.message) {
+        case 'Invalid login credentials':
+          errorMessage = 'Email o contraseña incorrectos'
+          break
+        case 'Email not confirmed':
+          errorMessage = 'Por favor confirma tu email antes de iniciar sesión'
+          break
+        case 'Too many requests':
+          errorMessage =
+            'Demasiados intentos. Intenta nuevamente en unos minutos'
+          break
+        default:
+          errorMessage = error.message
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+      }
+    }
+
+    if (!data.user) {
+      return {
+        success: false,
+        error: 'No se pudo autenticar el usuario',
+      }
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+  } catch (error) {
+    console.error('Error inesperado en login:', error)
+    return {
+      success: false,
+      error: 'Ocurrió un error inesperado. Intenta nuevamente.',
+    }
+  }
 }
 
 export async function logOut() {

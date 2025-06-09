@@ -19,6 +19,7 @@ import { useMobileMenu } from '@/hooks/use-mobile-menu'
 import { CldImage } from 'next-cloudinary'
 import { Usuario } from '@/types/database'
 import { logOut } from '@/actions/auth'
+import { useAuth } from '@/components/auth-wrapper'
 
 interface UserData {
   id: string
@@ -38,11 +39,16 @@ type NavigationProps = Readonly<{
   currentPage: NavegationPropsMobile
 }>
 
-function useUserProfile() {
+function useUserProfile(isAuthenticated: boolean) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isAuthenticated)
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
+    }
+
     async function fetchUser() {
       try {
         const response = await fetch('/api/auth/user')
@@ -59,12 +65,11 @@ function useUserProfile() {
     }
 
     fetchUser()
-  }, [])
+  }, [isAuthenticated])
 
   return {
     userProfile,
     loading,
-    isAuthenticated: Boolean(userProfile?.profile),
   }
 }
 
@@ -413,7 +418,8 @@ export default function Navigation({
 }: NavigationProps) {
   const { isMobile, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
     useMobileMenu()
-  const { userProfile, loading, isAuthenticated } = useUserProfile()
+  const { isAuthenticated } = useAuth()
+  const { userProfile, loading } = useUserProfile(isAuthenticated)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
