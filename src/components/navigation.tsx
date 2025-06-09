@@ -68,11 +68,11 @@ function useUserProfile() {
   }
 }
 
-interface UserAvatarProps {
+type UserAvatarProps = Readonly<{
   profile?: Usuario
   size?: 'sm' | 'md'
   className?: string
-}
+}>
 
 function UserAvatar({ profile, size = 'md', className = '' }: UserAvatarProps) {
   const sizeClasses = {
@@ -104,12 +104,12 @@ function UserAvatar({ profile, size = 'md', className = '' }: UserAvatarProps) {
   )
 }
 
-interface NavigationLinksProps {
+type NavigationLinksProps = Readonly<{
   isAuthenticated: boolean
   currentPage: NavegationPropsMobile
   onLinkClick: () => void
   isMobile?: boolean
-}
+}>
 
 function NavigationLinks({
   isAuthenticated,
@@ -190,13 +190,13 @@ function NavigationLinks({
   )
 }
 
-interface AuthButtonsProps {
+type AuthButtonsProps = Readonly<{
   isAuthenticated: boolean
   userProfile: UserProfile | null
   onLinkClick?: () => void
   isMobile?: boolean
   variant?: 'default' | 'back'
-}
+}>
 
 function AuthButtons({
   isAuthenticated,
@@ -221,11 +221,7 @@ function AuthButtons({
         <form>
           <Button
             variant={variant === 'back' ? 'ghost' : 'outline'}
-            className={
-              variant === 'back'
-                ? 'text-header-primary bg-transparent hover:text-header-primary/60 transition-colors'
-                : 'text-header-primary bg-transparent hover:text-header-primary/60 transition-colors'
-            }
+            className="text-header-primary bg-transparent hover:text-header-primary/60 transition-colors"
             formAction={logOut}
           >
             <LogOut className="h-4 w-4 mr-2" />
@@ -293,13 +289,13 @@ function AuthButtons({
   )
 }
 
-interface MobileMenuProps {
+type MobileMenuProps = Readonly<{
   isOpen: boolean
   onClose: () => void
   currentPage: NavegationPropsMobile
   isAuthenticated: boolean
   userProfile: UserProfile | null
-}
+}>
 
 function MobileMenu({
   isOpen,

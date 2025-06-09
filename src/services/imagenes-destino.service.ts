@@ -149,26 +149,32 @@ export async function uploadImage(
 
     const cloudinaryResult: UploadApiResponse = await new Promise(
       (resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            {
-              folder: `destinos/${saltoId}`,
-              resource_type: 'image',
-              transformation: [{ quality: 'auto' }, { fetch_format: 'auto' }],
-            },
-            (error, result) => {
-              if (error)
-                return reject(
-                  error instanceof Error ? error : new Error(String(error)),
-                )
-              if (!result)
-                return reject(
-                  new Error('No se recibió respuesta de Cloudinary'),
-                )
-              resolve(result)
-            },
-          )
-          .end(buffer)
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: `destinos/${saltoId}`,
+            resource_type: 'image',
+            transformation: [{ quality: 'auto' }, { fetch_format: 'auto' }],
+          },
+          (error, result) => {
+            if (error) {
+              const safeError =
+                error instanceof Error
+                  ? error
+                  : new Error(
+                      typeof error === 'string' ? error : JSON.stringify(error),
+                    )
+              return reject(safeError)
+            }
+
+            if (!result) {
+              return reject(new Error('No se recibió respuesta de Cloudinary'))
+            }
+
+            resolve(result)
+          },
+        )
+
+        stream.end(buffer)
       },
     )
 
