@@ -1,0 +1,9 @@
+# Ignore artifacts:
+build
+coverage
+*.json
+*.config.ts
+*.config.mjs
+*.setup.ts
+*.md
+*.yml
