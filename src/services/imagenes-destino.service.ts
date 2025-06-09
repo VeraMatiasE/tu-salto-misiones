@@ -139,6 +139,12 @@ export async function getImagenById(
   }
 }
 
+function normalizeError(error: unknown): Error {
+  if (error instanceof Error) return error
+  const message = typeof error === 'string' ? error : JSON.stringify(error)
+  return new Error(message)
+}
+
 export async function uploadImage(
   image: File,
   saltoId: number,
@@ -157,17 +163,14 @@ export async function uploadImage(
           },
           (error, result) => {
             if (error) {
-              const safeError =
-                error instanceof Error
-                  ? error
-                  : new Error(
-                      typeof error === 'string' ? error : JSON.stringify(error),
-                    )
-              return reject(safeError)
+              const safeError: Error = normalizeError(error)
+              reject(safeError)
+              return
             }
 
             if (!result) {
-              return reject(new Error('No se recibió respuesta de Cloudinary'))
+              reject(new Error('No se recibió respuesta de Cloudinary'))
+              return
             }
 
             resolve(result)
