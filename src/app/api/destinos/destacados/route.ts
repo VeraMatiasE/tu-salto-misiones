@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import { getDestinosDestacados } from "@/services/destinos.service"
+import { NextResponse } from 'next/server'
+import { getDestinosDestacados } from '@/services/destinos.service'
 
 export async function GET() {
   try {
@@ -10,17 +10,16 @@ export async function GET() {
     }
 
     return NextResponse.json(response, { status: 201 })
-
   } catch (error) {
     console.error('Error al obtener destinos aleatorios:', error)
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
-        message: error instanceof Error ? error.message : 'Error desconocido'
+        message: error instanceof Error ? error.message : 'Error desconocido',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

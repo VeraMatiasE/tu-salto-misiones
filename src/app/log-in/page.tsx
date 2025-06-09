@@ -1,6 +1,6 @@
-import { logIn } from "@/actions/auth";
-import Link from "next/link";
-import React from "react";
+import { logIn } from '@/actions/auth'
+import Link from 'next/link'
+import React from 'react'
 
 const Login = () => {
   return (
@@ -31,11 +31,11 @@ const Login = () => {
         </button>
       </form>
 
-      <Link href={"/"} className="font-bold">
+      <Link href={'/'} className="font-bold">
         Regresar
       </Link>
     </main>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

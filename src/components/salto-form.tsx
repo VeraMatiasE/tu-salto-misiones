@@ -1,51 +1,67 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { MapPin } from "lucide-react"
-import { SaltoFormProps } from "@/types/salto"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { MapPin } from 'lucide-react'
+import { Salto, SaltoFormProps } from '@/types/salto'
 
 // Esquema de validación para el formulario
 const formSchema = z.object({
   nombre: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 caracteres.",
+    message: 'El nombre debe tener al menos 3 caracteres.',
   }),
   descripcion: z.string().min(10, {
-    message: "La descripción debe tener al menos 10 caracteres.",
+    message: 'La descripción debe tener al menos 10 caracteres.',
   }),
   ubicacion: z.string().min(5, {
-    message: "Ingresa coordenadas válidas.",
+    message: 'Ingresa coordenadas válidas.',
   }),
   url_mapa: z.string().url({
-    message: "Ingresa una URL válida de Google Maps.",
+    message: 'Ingresa una URL válida de Google Maps.',
   }),
-  costo_entrada: z.number().min(0, { message: "El valor debe de ser mayor o igual a 0" }),
+  costo_entrada: z
+    .number()
+    .min(0, { message: 'El valor debe de ser mayor o igual a 0' }),
   infraestructura: z.array(z.string()).optional(),
   biodiversidad: z.string().min(10, {
-    message: "La descripción debe tener al menos 10 caracteres.",
+    message: 'La descripción debe tener al menos 10 caracteres.',
   }),
-  dificultad: z.enum(["baja", "media", "alta", "extrema"]),
+  dificultad: z.enum(['baja', 'media', 'alta', 'extrema']),
 })
 
 // Opciones para infraestructura
 const opcionesInfraestructura = [
-  { id: "baños", label: "Baños" },
-  { id: "estacionamiento", label: "Estacionamiento" },
-  { id: "camping", label: "Áreas de camping" },
-  { id: "guias", label: "Guías turísticos" },
-  { id: "senderos", label: "Senderos señalizados" },
-  { id: "miradores", label: "Miradores" },
+  { id: 'baños', label: 'Baños' },
+  { id: 'estacionamiento', label: 'Estacionamiento' },
+  { id: 'camping', label: 'Áreas de camping' },
+  { id: 'guias', label: 'Guías turísticos' },
+  { id: 'senderos', label: 'Senderos señalizados' },
+  { id: 'miradores', label: 'Miradores' },
 ]
 
 export function SaltoForm({ initialData }: SaltoFormProps) {
@@ -66,20 +82,22 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
             if (typeof initialData?.infraestructura === 'string') {
               return JSON.parse(initialData.infraestructura)
             }
-            return Array.isArray(initialData?.infraestructura) ? initialData.infraestructura : []
+            return Array.isArray(initialData?.infraestructura)
+              ? initialData.infraestructura
+              : []
           })(),
           biodiversidad: initialData.biodiversidad,
           dificultad: initialData.dificultad,
         }
       : {
-          nombre: "",
-          descripcion: "",
-          ubicacion: "",
-          url_mapa: "",
+          nombre: '',
+          descripcion: '',
+          ubicacion: '',
+          url_mapa: '',
           costo_entrada: 0,
           infraestructura: [],
-          biodiversidad: "",
-          dificultad: "media",
+          biodiversidad: '',
+          dificultad: 'media',
         },
   })
 
@@ -92,26 +110,38 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
 
     try {
       const response = await fetch(
-        isEditing ? `/api/destinos/${initialData?.id_destino}` : '/api/destinos',
+        isEditing
+          ? `/api/destinos/${initialData?.id_destino}`
+          : '/api/destinos',
         {
           method: isEditing ? 'PUT' : 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(values),
-        })
+        },
+      )
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`)
       }
 
-      router.push("/dashboard/saltos")
+      router.push('/dashboard/saltos')
       router.refresh()
     } catch (error) {
       console.error(`Error al ${action} el salto:`, error)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  function getButtonText(
+    isSubmitting: boolean,
+    initialData: Salto | undefined,
+  ): string {
+    if (isSubmitting) return 'Guardando...'
+    if (initialData) return 'Actualizar'
+    return 'Crear'
   }
 
   return (
@@ -124,8 +154,8 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
           </TabsList>
 
           {/* Pestaña de información básica */}
-           <TabsContent value="informacion" className="space-y-6 pt-4">
-             <FormField
+          <TabsContent value="informacion" className="space-y-6 pt-4">
+            <FormField
               control={form.control}
               name="nombre"
               render={({ field }) => (
@@ -137,7 +167,7 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            /> 
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
@@ -148,11 +178,17 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                     <FormLabel>Coordenadas</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input aria-label="Coordenadas" placeholder="Ej. -27.0875, -54.4444" {...field} />
+                        <Input
+                          aria-label="Coordenadas"
+                          placeholder="Ej. -27.0875, -54.4444"
+                          {...field}
+                        />
                         <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       </div>
                     </FormControl>
-                    <FormDescription>Formato: latitud, longitud</FormDescription>
+                    <FormDescription>
+                      Formato: latitud, longitud
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -165,9 +201,14 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                   <FormItem>
                     <FormLabel>Link a Google Maps</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://maps.google.com/?q=..." {...field} />
+                      <Input
+                        placeholder="https://maps.google.com/?q=..."
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>URL completa de Google Maps</FormDescription>
+                    <FormDescription>
+                      URL completa de Google Maps
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -180,14 +221,18 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Costo (ARS)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
-                    </FormControl>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? Number(e.target.value) : 0,
+                        )
+                      }
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -207,7 +252,8 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                     Incluye altura, caudal, formación rocosa, pozas y características distintivas del salto.
+                    Incluye altura, caudal, formación rocosa, pozas y
+                    características distintivas del salto.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -223,7 +269,10 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nivel de dificultad del acceso</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona el nivel de dificultad" />
@@ -231,12 +280,20 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="baja">Baja - Acceso fácil</SelectItem>
-                      <SelectItem value="media">Media - Requiere caminata moderada</SelectItem>
-                      <SelectItem value="alta">Alta - Requiere buena condición física</SelectItem>
-                      <SelectItem value="extrema">Extrema - Para personas experimentadas</SelectItem>
+                      <SelectItem value="media">
+                        Media - Requiere caminata moderada
+                      </SelectItem>
+                      <SelectItem value="alta">
+                        Alta - Requiere buena condición física
+                      </SelectItem>
+                      <SelectItem value="extrema">
+                        Extrema - Para personas experimentadas
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>Indica qué tan difícil es llegar al destino</FormDescription>
+                  <FormDescription>
+                    Indica qué tan difícil es llegar al destino
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -248,8 +305,12 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
               render={() => (
                 <FormItem>
                   <div className="mb-4">
-                    <FormLabel className="text-base">Infraestructura disponible</FormLabel>
-                    <FormDescription>Selecciona todas las opciones que apliquen</FormDescription>
+                    <FormLabel className="text-base">
+                      Infraestructura disponible
+                    </FormLabel>
+                    <FormDescription>
+                      Selecciona todas las opciones que apliquen
+                    </FormDescription>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {opcionesInfraestructura.map((item) => (
@@ -259,18 +320,30 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                         name="infraestructura"
                         render={({ field }) => {
                           return (
-                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormItem
+                              key={item.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
                               <FormControl>
                                 <Checkbox
                                   checked={field.value?.includes(item.id)}
                                   onCheckedChange={(checked) => {
                                     return checked
-                                      ? field.onChange([...(field.value || []), item.id])
-                                      : field.onChange(field.value?.filter((value) => value !== item.id))
+                                      ? field.onChange([
+                                          ...(field.value || []),
+                                          item.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item.id,
+                                          ),
+                                        )
                                   }}
                                 />
                               </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">{item.label}</FormLabel>
+                              <FormLabel className="font-normal cursor-pointer">
+                                {item.label}
+                              </FormLabel>
                             </FormItem>
                           )
                         }}
@@ -296,7 +369,8 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Incluye información sobre especies nativas, vegetación y animales característicos.
+                    Incluye información sobre especies nativas, vegetación y
+                    animales característicos.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -305,15 +379,18 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
           </TabsContent>
         </Tabs>
 
-
         <div className="flex justify-end gap-4 pt-4 border-t">
-           <Button type="button" variant="outline" onClick={() => router.push("/dashboard/saltos")}>
-             Cancelar
-           </Button>
-           <Button type="submit" disabled={isSubmitting} variant="default">
-             {isSubmitting ? "Guardando..." : initialData ? "Actualizar" : "Crear"}
-           </Button>
-         </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/dashboard/saltos')}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting} variant="default">
+            {getButtonText(isSubmitting, initialData)}
+          </Button>
+        </div>
       </form>
     </Form>
   )

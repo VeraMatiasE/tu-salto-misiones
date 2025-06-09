@@ -1,11 +1,18 @@
-"use client"
+'use client'
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import Link from "next/link"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Edit, Trash2, MapPin } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import Link from 'next/link'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Edit, Trash2, MapPin } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,14 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { SaltoConId } from "@/types/salto"
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { SaltoConId } from '@/types/salto'
 
-type SaltosListProps = {
-  saltos: SaltoConId[],
+type SaltosListProps = Readonly<{
+  saltos: SaltoConId[]
   onSaltoDeleted?: (id: string) => void
-}
+}>
 
 export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
   const router = useRouter()
@@ -31,22 +38,22 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
 
   const getDificultadColor = (dificultad: string) => {
     switch (dificultad) {
-      case "baja":
-        return "bg-header text-text-secondary"
-      case "media":
-        return "bg-accent text-text-secondary"
-      case "alta":
-        return "bg-primary text-white"
-      case "extrema":
-        return "bg-red-100 text-red-800"
+      case 'baja':
+        return 'bg-header text-text-secondary'
+      case 'media':
+        return 'bg-accent text-text-secondary'
+      case 'alta':
+        return 'bg-primary text-white'
+      case 'extrema':
+        return 'bg-red-100 text-red-800'
       default:
-        return "bg-gray-100 text-gray-800"
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
   const handleDelete = async (saltoId: string, saltoNombre: string) => {
     setDeletingId(saltoId)
-    
+
     try {
       const response = await fetch(`/api/destinos/${saltoId}`, {
         method: 'DELETE',
@@ -57,7 +64,10 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+        throw new Error(
+          errorData.message
+            ?? `Error ${response.status}: ${response.statusText}`,
+        )
       }
 
       if (onSaltoDeleted) {
@@ -65,7 +75,6 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
       } else {
         router.refresh()
       }
-      
     } catch (error) {
       alert(`Error al eliminar ${saltoNombre}: ${error.message}`)
     } finally {
@@ -88,7 +97,10 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
         <TableBody>
           {saltos.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="font-text text-center py-6 text-muted-foreground">
+              <TableCell
+                colSpan={6}
+                className="font-text text-center py-6 text-muted-foreground"
+              >
                 No hay saltos registrados. Agrega uno nuevo para comenzar.
               </TableCell>
             </TableRow>
@@ -111,12 +123,15 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
                   {salto.costo_entrada === 0 ? (
                     <span className="text-green-600">Gratuito</span>
                   ) : (
-                    <span className="text-amber-600">${salto.costo_entrada}</span>
+                    <span className="text-amber-600">
+                      ${salto.costo_entrada}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell>
                   <Badge className={getDificultadColor(salto.dificultad)}>
-                    {salto.dificultad.charAt(0).toUpperCase() + salto.dificultad.slice(1)}
+                    {salto.dificultad.charAt(0).toUpperCase()
+                      + salto.dificultad.slice(1)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -144,8 +159,9 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
                         <AlertDialogHeader>
                           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará permanentemente el registro de {salto.nombre}{" "}
-                            y toda su información asociada.
+                            Esta acción no se puede deshacer. Se eliminará
+                            permanentemente el registro de {salto.nombre} y toda
+                            su información asociada.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -153,7 +169,9 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
                           <AlertDialogAction
                             className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
                             disabled={deletingId === salto.id_destino}
-                            onClick={() => handleDelete(salto.id_destino, salto.nombre)}
+                            onClick={() =>
+                              handleDelete(salto.id_destino, salto.nombre)
+                            }
                           >
                             {deletingId === salto.id_destino ? (
                               <>

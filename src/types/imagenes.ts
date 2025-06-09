@@ -1,12 +1,12 @@
 export type Imagen = {
-    id_imagen: string
-    url_imagen: string
-    fecha_actualizacion: string
-    public_id: string
+  id_imagen: string
+  url_imagen: string
+  fecha_actualizacion: string
+  public_id: string
 }
 
 export type ImagenesDestino = {
-    id_destino: string
-    nombre: string
-    imagenes: Imagen[]
+  id_destino: string
+  nombre: string
+  imagenes: Imagen[]
 }

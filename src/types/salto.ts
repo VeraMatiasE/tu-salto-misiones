@@ -10,21 +10,31 @@ export type Salto = {
   biodiversidad: string
 }
 
-export type SaltoConId = Required<Pick<Salto, 'id_destino'>> & Omit<Salto, 'id_destino'>
+export type SaltoConId = Required<Pick<Salto, 'id_destino'>>
+  & Omit<Salto, 'id_destino'>
 
-export type SaltoFormProps = {
+export type SaltoFormProps = Readonly<{
   initialData?: Salto
-}
+}>
 
-export type SaltosDestacados = Omit<SaltoConId, 
-  "fecha_actualizacion" | "estatus" | "fecha_registro" | "url_mapa" | "biodiversidad" | "dificultad" | "infraestructura" | "costo_entrada" | "descripcion"
+export type SaltosDestacados = Omit<
+  SaltoConId,
+  | 'fecha_actualizacion'
+  | 'estatus'
+  | 'fecha_registro'
+  | 'url_mapa'
+  | 'biodiversidad'
+  | 'dificultad'
+  | 'infraestructura'
+  | 'costo_entrada'
+  | 'descripcion'
 > & {
-  url_imagen: string
+  public_id: string
 }
 
 export interface SaltoWithExtras extends SaltoConId {
   puntuacion: number
-  url_imagen: string
+  public_id: string
 }
 
 export interface SaltoFilters {
