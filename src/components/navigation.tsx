@@ -36,13 +36,19 @@ type NavegationPropsMobile = 'inicio' | 'saltos' | 'favoritos'
 type NavigationProps = Readonly<{
   variant?: 'default' | 'back'
   currentPage: NavegationPropsMobile
+  isAuthenticated: boolean
 }>
 
-function useUserProfile() {
+function useUserProfile(isAuthenticated: boolean) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isAuthenticated)
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
+    }
+
     async function fetchUser() {
       try {
         const response = await fetch('/api/auth/user')
@@ -59,12 +65,11 @@ function useUserProfile() {
     }
 
     fetchUser()
-  }, [])
+  }, [isAuthenticated])
 
   return {
     userProfile,
     loading,
-    isAuthenticated: Boolean(userProfile?.profile),
   }
 }
 
@@ -410,10 +415,11 @@ function MobileMenu({
 export default function Navigation({
   variant = 'default',
   currentPage = 'inicio',
+  isAuthenticated = false,
 }: NavigationProps) {
   const { isMobile, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
     useMobileMenu()
-  const { userProfile, loading, isAuthenticated } = useUserProfile()
+  const { userProfile, loading } = useUserProfile(isAuthenticated)
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

@@ -126,7 +126,6 @@ describe('Navigation Component', () => {
     .useMobileMenu as jest.Mock<MockUseMobileMenuReturn, []>
 
   beforeEach(() => {
-    mockFetch.mockClear()
     mockUseMobileMenu.mockReturnValue({
       isMobile: false,
       isMobileMenuOpen: false,
@@ -136,14 +135,8 @@ describe('Navigation Component', () => {
   })
 
   describe('Variante default - Usuario no autenticado', () => {
-    beforeEach(() => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-      })
-    })
-
     test('debe renderizar el título principal', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Tu Salto Misiones')).toBeInTheDocument()
@@ -151,7 +144,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar botones de login y registro para usuarios no autenticados', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument()
@@ -160,7 +153,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlace "Todos los Saltos" en desktop', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Todos los Saltos')).toBeInTheDocument()
@@ -193,15 +186,12 @@ describe('Navigation Component', () => {
       },
     }
 
-    beforeAll(() => {
-      mockFetch.mockResolvedValue({
+    test('debe mostrar información del usuario cuando está autenticado', async () => {
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockUserProfile),
       })
-    })
-
-    test('debe mostrar información del usuario cuando está autenticado', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Usuario Test')).toBeInTheDocument()
@@ -210,7 +200,11 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlaces de navegación para usuarios autenticados', async () => {
-      render(<Navigation currentPage="inicio" />)
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockUserProfile),
+      })
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Inicio')).toBeInTheDocument()
@@ -228,12 +222,14 @@ describe('Navigation Component', () => {
         },
       }
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(userWithPhoto),
-      })
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(userWithPhoto),
+        }),
+      )
 
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByAltText('Foto de perfil')).toBeInTheDocument()
@@ -245,7 +241,13 @@ describe('Navigation Component', () => {
     test('debe renderizar botón de volver', async () => {
       mockFetch.mockResolvedValueOnce({ ok: false })
 
-      render(<Navigation variant="back" currentPage="inicio" />)
+      render(
+        <Navigation
+          isAuthenticated={true}
+          variant="back"
+          currentPage="inicio"
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByTestId('arrow-left-icon')).toBeInTheDocument()
@@ -255,7 +257,13 @@ describe('Navigation Component', () => {
     test('debe tener enlace de navegación hacia atrás', async () => {
       mockFetch.mockResolvedValueOnce({ ok: false })
 
-      render(<Navigation variant="back" currentPage="inicio" />)
+      render(
+        <Navigation
+          isAuthenticated={true}
+          variant="back"
+          currentPage="inicio"
+        />,
+      )
 
       await waitFor(() => {
         const backLink = screen.getByLabelText('Volver al inicio')
@@ -272,11 +280,10 @@ describe('Navigation Component', () => {
         toggleMobileMenu: jest.fn(),
         closeMobileMenu: jest.fn(),
       })
-      mockFetch.mockResolvedValueOnce({ ok: false })
     })
 
     test('debe mostrar botón de menú en móvil', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByTestId('menu-icon')).toBeInTheDocument()
@@ -292,7 +299,7 @@ describe('Navigation Component', () => {
         closeMobileMenu: jest.fn(),
       })
 
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(async () => {
         const menuButton = screen.getByLabelText('Abrir menú')
@@ -313,11 +320,10 @@ describe('Navigation Component', () => {
         toggleMobileMenu: jest.fn(),
         closeMobileMenu,
       })
-      mockFetch.mockResolvedValueOnce({ ok: false })
     })
 
     test('debe renderizar menú móvil cuando está abierto', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(async () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -326,7 +332,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe cerrar menú al hacer click en X', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(async () => {
         const closeButton = screen.getByLabelText('Cerrar menú')
@@ -337,7 +343,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe cerrar menú al presionar Escape', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(async () => {
         fireEvent.keyDown(document, { key: 'Escape' })
@@ -346,7 +352,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlaces de navegación en menú móvil', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(async () => {
         expect(screen.getByTestId('home-icon')).toBeInTheDocument()
@@ -394,7 +400,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar perfil de usuario en menú móvil', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByText('Usuario Test')).toBeInTheDocument()
@@ -403,7 +409,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe mostrar enlace de favoritos para usuarios autenticados', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(screen.getByTestId('star-icon')).toBeInTheDocument()
@@ -413,7 +419,6 @@ describe('Navigation Component', () => {
 
   describe('Página actual', () => {
     beforeEach(() => {
-      mockFetch.mockResolvedValueOnce({ ok: false })
       mockUseMobileMenu.mockReturnValue({
         isMobile: true,
         isMobileMenuOpen: true,
@@ -423,7 +428,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe marcar página de inicio como activa', async () => {
-      render(<Navigation currentPage="inicio" />)
+      render(<Navigation isAuthenticated={false} currentPage="inicio" />)
 
       await waitFor(() => {
         const inicioLink = screen.getByText('Inicio').closest('a')
@@ -432,7 +437,7 @@ describe('Navigation Component', () => {
     })
 
     test('debe marcar página de saltos como activa', async () => {
-      render(<Navigation currentPage="saltos" />)
+      render(<Navigation isAuthenticated={false} currentPage="saltos" />)
 
       await waitFor(() => {
         const saltosLink = screen.getByText('Todos los Saltos').closest('a')
@@ -443,13 +448,15 @@ describe('Navigation Component', () => {
 
   describe('Manejo de errores', () => {
     test('debe manejar errores de fetch correctamente', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
-
       const consoleSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {})
 
-      render(<Navigation currentPage="inicio" />)
+      mockFetch.mockImplementationOnce(() =>
+        Promise.reject(new Error('Network error')),
+      )
+
+      render(<Navigation isAuthenticated={true} currentPage="inicio" />)
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(
