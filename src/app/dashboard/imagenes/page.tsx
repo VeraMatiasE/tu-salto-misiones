@@ -4,14 +4,14 @@ import { ImagenesList } from '@/components/imagenes-list'
 import { useEffect, useState } from 'react'
 
 export default function ImagenesAdminPage() {
-  const [imagenes_saltos, setSaltos] = useState([])
+  const [imagenesSaltos, setImagenesSaltos] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/imagenes')
       .then((res) => res.json())
       .then((data) => {
-        setSaltos(data.data)
+        setImagenesSaltos(data.data)
         setLoading(false)
       })
       .catch((error) => {
@@ -34,7 +34,7 @@ export default function ImagenesAdminPage() {
       {loading ? (
         <p className="font-text text-muted-foreground">Cargando imágenes...</p>
       ) : (
-        <ImagenesList imagenes_saltos={imagenes_saltos} />
+        <ImagenesList imagenes_saltos={imagenesSaltos} />
       )}
     </div>
   )

@@ -29,12 +29,12 @@ export type SaltosDestacados = Omit<
   | 'costo_entrada'
   | 'descripcion'
 > & {
-  url_imagen: string
+  public_id: string
 }
 
 export interface SaltoWithExtras extends SaltoConId {
   puntuacion: number
-  url_imagen: string
+  public_id: string
 }
 
 export interface SaltoFilters {

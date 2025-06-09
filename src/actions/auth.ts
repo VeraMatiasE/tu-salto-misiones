@@ -23,7 +23,7 @@ export async function signUp(formData: FormData) {
       redirect('/error')
     }
 
-    if (!authData || !authData.user || !authData.user.email) {
+    if (!authData?.user?.email) {
       redirect('/error')
     }
 
@@ -33,10 +33,7 @@ export async function signUp(formData: FormData) {
           ? ''
           : (formData.get('nombre') as string),
       email: authData.user.email,
-      rol:
-        formData.get('rol') == null || formData.get('rol') == 'false'
-          ? false
-          : true,
+      rol: formData.get('rol') !== null && formData.get('rol') !== 'false',
       uid_usuario: authData.user.id,
       contrasena: '',
       foto_perfil: null,

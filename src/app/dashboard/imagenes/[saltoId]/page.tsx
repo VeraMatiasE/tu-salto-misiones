@@ -6,7 +6,7 @@ import { use, useEffect, useState } from 'react'
 export default function GestionImagenesPage({
   params,
 }: {
-  params: Promise<{ saltoId: string }>
+  params: Readonly<Promise<{ saltoId: string }>>
 }) {
   const resolvedParams = use(params)
   const [saltoData, setSaltoData] = useState(null)

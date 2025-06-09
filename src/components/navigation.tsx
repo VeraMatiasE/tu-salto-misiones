@@ -20,10 +20,10 @@ import { CldImage } from 'next-cloudinary'
 import { Usuario } from '@/types/database'
 import { logOut } from '@/actions/auth'
 
-interface NavigationProps {
+type NavigationProps = Readonly<{
   variant?: 'default' | 'back'
   currentPage: NavegationPropsMobile
-}
+}>
 
 interface UserData {
   id: string

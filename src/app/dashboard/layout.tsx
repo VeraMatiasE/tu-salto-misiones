@@ -4,7 +4,7 @@ import { DashboardSidebar } from '@/components/admin-sidebar'
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: Readonly<React.ReactNode>
 }) {
   return (
     <div className="flex min-h-screen bg-background">

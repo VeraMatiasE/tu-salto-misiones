@@ -42,10 +42,10 @@ import { useImageSizes } from '@/hooks/useImageSizes'
 import { CldImage } from 'next-cloudinary'
 import { ApiResponse } from '@/types/database'
 
-type ImagenUploadProps = {
+type ImagenUploadProps = Readonly<{
   saltoId: string
   initialImages: Imagen[]
-}
+}>
 
 export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
   const router = useRouter()
@@ -157,7 +157,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.message || `Error al subir ${file.name}`)
+      throw new Error(errorData.message ?? `Error al subir ${file.name}`)
     }
 
     return await response.json()
@@ -226,6 +226,58 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     }
   }
 
+  const renderImageStatus = (image: Imagen) => {
+    if (sizes[image.url_imagen]) {
+      return `${sizes[image.url_imagen].kb} KB • ${image.fecha_actualizacion}`
+    }
+
+    if (loading[image.url_imagen]) {
+      return (
+        <span className="flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Calculando tamaño...
+        </span>
+      )
+    }
+
+    if (errors[image.url_imagen]) {
+      return (
+        <span className="text-red-500">
+          {errors[image.url_imagen]} • {image.fecha_actualizacion}
+        </span>
+      )
+    }
+
+    return `${errors[image.url_imagen]} ${image.fecha_actualizacion}`
+  }
+
+  const renderImageSizeStatus = (image: Imagen) => {
+    if (sizes[image.url_imagen]) {
+      return (
+        <p className="text-green-600">
+          {sizes[image.url_imagen].kb} KB
+          {sizes[image.url_imagen].mb >= 1
+            && ` (${sizes[image.url_imagen].mb} MB)`}
+        </p>
+      )
+    }
+
+    if (loading[image.url_imagen]) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          <span className="text-sm">Calculando...</span>
+        </div>
+      )
+    }
+
+    if (errors[image.url_imagen]) {
+      return <p className="text-red-500 text-sm">{errors[image.url_imagen]}</p>
+    }
+
+    return <p className="text-muted-foreground text-sm">No disponible</p>
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="galeria" value={tabValue} onValueChange={setTabValue}>
@@ -260,12 +312,12 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
           {images.length > 0 && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {images.map((image, index) => (
-                  <Card key={index} className="overflow-hidden">
+                {images.map((image) => (
+                  <Card key={image.id_imagen} className="overflow-hidden">
                     <div className="relative aspect-[4/3] bg-muted">
                       <CldImage
-                        src={image.url_imagen}
-                        alt={`Imagen ${index + 1}`}
+                        src={image.public_id}
+                        alt={`Imagen ${image.public_id}`}
                         fill
                         crop={{
                           type: 'auto',
@@ -348,23 +400,11 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
                       </div>
                     </div>
                     <CardContent className="p-3">
-                      <p className="font-medium truncate">Imagen {index + 1}</p>
+                      <p className="font-medium truncate">
+                        Imagen {image.public_id}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {sizes[image.url_imagen] ? (
-                          `${sizes[image.url_imagen].kb} KB • ${image.fecha_actualizacion}`
-                        ) : loading[image.url_imagen] ? (
-                          <span className="flex items-center gap-1">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Calculando tamaño...
-                          </span>
-                        ) : errors[image.url_imagen] ? (
-                          <span className="text-red-500">
-                            {errors[image.url_imagen]} •{' '}
-                            {image.fecha_actualizacion}
-                          </span>
-                        ) : (
-                          `${errors[image.url_imagen]} ${image.fecha_actualizacion}`
-                        )}
+                        {renderImageStatus(image)}
                       </p>
                     </CardContent>
                   </Card>
@@ -389,28 +429,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
                         <TableCell className="font-medium">
                           {image.url_imagen}
                         </TableCell>
-                        <TableCell>
-                          {sizes[image.url_imagen] ? (
-                            <p className="text-green-600">
-                              {sizes[image.url_imagen].kb} KB
-                              {sizes[image.url_imagen].mb >= 1
-                                && ` (${sizes[image.url_imagen].mb} MB)`}
-                            </p>
-                          ) : loading[image.url_imagen] ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              <span className="text-sm">Calculando...</span>
-                            </div>
-                          ) : errors[image.url_imagen] ? (
-                            <p className="text-red-500 text-sm">
-                              {errors[image.url_imagen]}
-                            </p>
-                          ) : (
-                            <p className="text-muted-foreground text-sm">
-                              No disponible
-                            </p>
-                          )}
-                        </TableCell>
+                        <TableCell>{renderImageSizeStatus(image)}</TableCell>
                         <TableCell>{image.fecha_actualizacion}</TableCell>
                         <TableCell className="text-right">
                           <AlertDialog>

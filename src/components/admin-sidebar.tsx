@@ -9,35 +9,39 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
+type NavItemsProps = {
+  isActive: (path: string) => boolean
+}
+
+const NavItems = ({ isActive }: NavItemsProps) => (
+  <div className="space-y-1">
+    <NavItem
+      href="/dashboard/saltos"
+      icon={<Droplets className="h-4 w-4" />}
+      label="Saltos y Cascadas"
+      active={isActive('/dashboard/saltos')}
+    />
+    <NavItem
+      href="/dashboard/usuarios"
+      icon={<Users className="h-4 w-4" />}
+      label="Usuarios"
+      active={isActive('/dashboard/usuarios')}
+    />
+    <NavItem
+      href="/dashboard/imagenes"
+      icon={<ImageIcon className="h-4 w-4" />}
+      label="Imágenes"
+      active={isActive('/dashboard/imagenes')}
+    />
+  </div>
+)
+
 export function DashboardSidebar() {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
     return pathname?.startsWith(path)
   }
-
-  const NavItems = () => (
-    <div className="space-y-1">
-      <NavItem
-        href="/dashboard/saltos"
-        icon={<Droplets className="h-4 w-4" />}
-        label="Saltos y Cascadas"
-        active={isActive('/dashboard/saltos')}
-      />
-      <NavItem
-        href="/dashboard/usuarios"
-        icon={<Users className="h-4 w-4" />}
-        label="Usuarios"
-        active={isActive('/dashboard/usuarios')}
-      />
-      <NavItem
-        href="/dashboard/imagenes"
-        icon={<ImageIcon className="h-4 w-4" />}
-        label="Imágenes"
-        active={isActive('/dashboard/imagenes')}
-      />
-    </div>
-  )
 
   return (
     <>
@@ -51,7 +55,7 @@ export function DashboardSidebar() {
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-2 px-4">
-          <NavItems />
+          <NavItems isActive={isActive} />
         </div>
         <div className="border-t p-4">
           <div className="space-y-1">
@@ -90,7 +94,7 @@ export function DashboardSidebar() {
               </Link>
             </div>
             <div className="flex-1 overflow-auto py-2 px-4">
-              <NavItems />
+              <NavItems isActive={isActive} />
             </div>
             <div className="border-t p-4">
               <div className="space-y-1">
@@ -123,12 +127,12 @@ export function DashboardSidebar() {
   )
 }
 
-interface NavItemProps {
+type NavItemProps = Readonly<{
   href: string
   icon: React.ReactNode
   label: string
   active?: boolean
-}
+}>
 
 function NavItem({ href, icon, label, active }: NavItemProps) {
   return (

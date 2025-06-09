@@ -54,7 +54,7 @@ describe('Destinos Service', () => {
           dificultad: 'baja',
           infraestructura: '["wifi", "parking"]',
           estatus: true,
-          imagenes_destino: [{ url_imagen: 'https://example.com/image1.jpg' }],
+          imagenes_destino: [{ public_id: 'image1.jpg' }],
           resenas: [{ calificacion: 4.5 }, { calificacion: 3.8 }],
         },
         {
@@ -65,7 +65,7 @@ describe('Destinos Service', () => {
           dificultad: 'media',
           infraestructura: '["restaurante", "baños"]',
           estatus: true,
-          imagenes_destino: [{ url_imagen: 'https://example.com/image2.jpg' }],
+          imagenes_destino: [{ public_id: 'image2.jpg' }],
           resenas: [{ calificacion: 5.0 }],
         },
       ]
@@ -84,7 +84,7 @@ describe('Destinos Service', () => {
       const firstDestino = result.data?.data[0]
       expect(firstDestino?.nombre).toBe('Destino 1')
       expect(firstDestino?.puntuacion).toBe(4.2) // Promedio de 4.5 y 3.8
-      expect(firstDestino?.url_imagen).toBe('https://example.com/image1.jpg')
+      expect(firstDestino?.public_id).toBe('image1.jpg')
       expect(firstDestino?.infraestructura).toEqual(['wifi', 'parking'])
 
       expect(firstDestino).not.toHaveProperty('resenas')
@@ -100,7 +100,7 @@ describe('Destinos Service', () => {
       expect(mockSupabase.from).toHaveBeenCalledWith('destinos')
       expect(mockSupabase.select).toHaveBeenCalledWith(`
         *,
-        imagenes_destino(url_imagen),
+        imagenes_destino(public_id),
         resenas(calificacion)
       `)
       expect(mockSupabase.eq).toHaveBeenCalledWith('estatus', true)

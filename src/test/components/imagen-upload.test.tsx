@@ -160,15 +160,15 @@ describe('ImagenUpload', () => {
       const images = screen.getAllByTestId('cld-image')
       expect(images).toHaveLength(2)
 
-      expect(images[0]).toHaveAttribute('src', 'test-image-1.jpg')
-      expect(images[1]).toHaveAttribute('src', 'test-image-2.jpg')
+      expect(images[0]).toHaveAttribute('src', 'test-image-1')
+      expect(images[1]).toHaveAttribute('src', 'test-image-2')
     })
 
     it('debe mostrar información de las imágenes en cards', () => {
       render(<ImagenUpload {...defaultProps} />)
 
-      expect(screen.getByText('Imagen 1')).toBeInTheDocument()
-      expect(screen.getByText('Imagen 2')).toBeInTheDocument()
+      expect(screen.getByText('Imagen test-image-1')).toBeInTheDocument()
+      expect(screen.getByText('Imagen test-image-2')).toBeInTheDocument()
     })
 
     it('debe mostrar la tabla con información detallada', () => {
@@ -501,7 +501,7 @@ describe('ImagenUpload', () => {
         <ImagenUpload saltoId="test-salto" initialImages={imagesWithoutDate} />,
       )
 
-      expect(screen.getByText('Imagen 1')).toBeInTheDocument()
+      expect(screen.getByText('Imagen test-image')).toBeInTheDocument()
     })
   })
 })

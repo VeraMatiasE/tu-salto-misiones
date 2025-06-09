@@ -14,9 +14,9 @@ import { ImageIcon, Plus } from 'lucide-react'
 import { ImagenesDestino } from '@/types/imagenes'
 import { CldImage } from 'next-cloudinary'
 
-type ImagenesListProps = {
+type ImagenesListProps = Readonly<{
   imagenes_saltos: ImagenesDestino[]
-}
+}>
 
 export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
   return (
@@ -36,7 +36,7 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
             <div className="relative aspect-video bg-muted rounded-md overflow-hidden">
               {imagenes_salto.imagenes.length > 0 ? (
                 <CldImage
-                  src={imagenes_salto.imagenes[0].url_imagen}
+                  src={imagenes_salto.imagenes[0].public_id}
                   alt={imagenes_salto.nombre}
                   fill
                   className="object-cover"
@@ -58,7 +58,7 @@ export function ImagenesList({ imagenes_saltos }: ImagenesListProps) {
                     className="relative aspect-square rounded-md overflow-hidden bg-muted"
                   >
                     <CldImage
-                      src={imagen.url_imagen}
+                      src={imagen.public_id}
                       alt=""
                       fill
                       className="object-cover"

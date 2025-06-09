@@ -97,9 +97,9 @@ export default function HomePage() {
               <Link key={salto.id_destino} href={`/salto/${salto.id_destino}`}>
                 <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer">
                   <div className="relative h-48">
-                    {salto.url_imagen ? (
+                    {salto.public_id ? (
                       <CldImage
-                        src={salto.url_imagen}
+                        src={salto.public_id}
                         alt={salto.nombre}
                         fill
                         className="object-cover"

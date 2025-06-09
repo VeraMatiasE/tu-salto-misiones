@@ -29,8 +29,8 @@ export default function UsuariosAdminPage() {
       .then((res) => res.json())
       .then((res) => {
         setUsuarios(res.data)
-        setTotalPages(res.pagination?.totalPages || 0)
-        setTotalItems(res.pagination?.total || 0)
+        setTotalPages(res.pagination?.totalPages ?? 0)
+        setTotalItems(res.pagination?.total ?? 0)
         setLoading(false)
       })
       .catch((error) => {
@@ -106,16 +106,19 @@ export default function UsuariosAdminPage() {
                   />
                 </PaginationItem>
 
-                {Array.from({ length: totalPages }).map((_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(index + 1)}
-                      isActive={currentPage === index + 1}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
+                {Array.from({ length: totalPages }).map((_, index) => {
+                  const pageNumber = index + 1
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(pageNumber)}
+                        isActive={currentPage === pageNumber}
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                })}
 
                 <PaginationItem>
                   <PaginationNext

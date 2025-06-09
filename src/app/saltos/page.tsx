@@ -138,10 +138,10 @@ function SaltosPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState(() => {
-    return searchParams.get('search') || ''
+    return searchParams.get('search') ?? ''
   })
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(() => {
-    return searchParams.get('search') || ''
+    return searchParams.get('search') ?? ''
   })
   const [sortBy, setSortBy] = useState<SortType>('nombre-az')
   const [showFilters, setShowFilters] = useState(false)
@@ -192,7 +192,7 @@ function SaltosPage() {
   }, [searchTerm, router, searchParams])
 
   useEffect(() => {
-    const search = searchParams.get('search') || ''
+    const search = searchParams.get('search') ?? ''
     setSearchTerm(search)
     setDebouncedSearchTerm(search)
   }, [searchParams])
@@ -340,34 +340,28 @@ function SaltosPage() {
     const items: PaginationItem[] = []
     const maxVisiblePages = 5
 
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(i)
-      }
-    } else {
-      items.push(1)
-
-      const start = Math.max(2, currentPage - 1)
-      const end = Math.min(totalPages - 1, currentPage + 1)
-
-      if (start > 2) {
-        items.push('ellipsis-start')
-      }
-
+    const addPageRange = (start: number, end: number) => {
       for (let i = start; i <= end; i++) {
         if (i !== 1 && i !== totalPages) {
           items.push(i)
         }
       }
-
-      if (end < totalPages - 1) {
-        items.push('ellipsis-end')
-      }
-
-      if (totalPages > 1) {
-        items.push(totalPages)
-      }
     }
+
+    if (totalPages <= maxVisiblePages) {
+      addPageRange(1, totalPages)
+      return items
+    }
+
+    items.push(1)
+
+    const start = Math.max(2, currentPage - 1)
+    const end = Math.min(totalPages - 1, currentPage + 1)
+
+    if (start > 2) items.push('ellipsis-start')
+    addPageRange(start, end)
+    if (end < totalPages - 1) items.push('ellipsis-end')
+    items.push(totalPages)
 
     return items
   }
@@ -698,9 +692,9 @@ function SaltosPage() {
                   <div className="flex flex-col md:flex-row">
                     {/* Image */}
                     <div className="relative h-48 md:h-40 md:w-64 flex-shrink-0">
-                      {salto.url_imagen ? (
+                      {salto.public_id ? (
                         <CldImage
-                          src={salto.url_imagen}
+                          src={salto.public_id}
                           alt={salto.nombre}
                           fill
                           className="object-cover"

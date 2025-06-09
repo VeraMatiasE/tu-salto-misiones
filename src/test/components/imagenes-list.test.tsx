@@ -131,16 +131,10 @@ describe('ImagenesList', () => {
 
       const mainImages = screen.getAllByTestId('cld-image')
 
-      expect(mainImages[0]).toHaveAttribute(
-        'src',
-        'https://res.cloudinary.com/demo/image/upload/v1/sample1.jpg',
-      )
+      expect(mainImages[0]).toHaveAttribute('src', 'sample1.jpg')
       expect(mainImages[0]).toHaveAttribute('alt', 'Salto del Arcoíris')
 
-      expect(mainImages[4]).toHaveAttribute(
-        'src',
-        'https://res.cloudinary.com/demo/image/upload/v1/sample4.jpg',
-      )
+      expect(mainImages[4]).toHaveAttribute('src', 'sample4.jpg')
       expect(mainImages[4]).toHaveAttribute('alt', 'Salto Encantado')
     })
 

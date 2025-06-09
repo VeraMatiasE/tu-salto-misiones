@@ -32,7 +32,7 @@ export async function getDestinosDestacados(): Promise<
     for (const salto of dataSalto) {
       const { data: dataImagen, error: errorImagen } = await supabase
         .from('imagenes_destino')
-        .select('id_imagen, url_imagen')
+        .select('id_imagen, public_id')
         .eq('id_destino', salto.id_destino)
         .eq('estatus', true)
         .limit(1)
@@ -47,7 +47,7 @@ export async function getDestinosDestacados(): Promise<
 
       destinosConImagenes.push({
         ...salto,
-        url_imagen: dataImagen?.url_imagen,
+        public_id: dataImagen?.public_id,
       })
     }
 
@@ -83,7 +83,7 @@ export async function getDestinos(
       .select(
         `
         *,
-        imagenes_destino(url_imagen),
+        imagenes_destino(public_id),
         resenas(calificacion)
       `,
       )
@@ -131,7 +131,7 @@ export async function getDestinos(
             / ratings.length
           : 0
 
-      const firstImage = destino.imagenes_destino?.[0]?.url_imagen || null
+      const firstImage = destino.imagenes_destino?.[0]?.public_id || null
 
       let infraestructura: string[] = []
       try {
@@ -150,7 +150,7 @@ export async function getDestinos(
         ...cleanDestino,
         infraestructura,
         puntuacion: Math.round(avgRating * 10) / 10, // Round to 1 decimal
-        url_imagen: firstImage,
+        public_id: firstImage,
       } as SaltoWithExtras
     })
 
