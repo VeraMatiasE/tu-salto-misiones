@@ -42,7 +42,7 @@ describe('SaltoForm', () => {
   const validFormData = {
     nombre: 'Salto del Arcoiris',
     descripcion: 'Un hermoso salto con formaciones rocosas',
-    ubicacion: '-27.0875, -54.4444',
+    ubicacion: 'Iguazú',
     url_mapa: 'https://maps.google.com/?q=-27.0875,-54.4444',
     costo_entrada: 1000,
     infraestructura: [
@@ -116,7 +116,7 @@ describe('SaltoForm', () => {
           screen.getByText('La descripción debe tener al menos 10 caracteres.'),
         ).toBeInTheDocument()
         expect(
-          screen.getByText('Ingresa coordenadas válidas.'),
+          screen.getByText('La ubicación debe de tener al menos 5 caracteres.'),
         ).toBeInTheDocument()
       })
     })
@@ -267,7 +267,7 @@ describe('SaltoForm', () => {
         validFormData.nombre,
       )
       await user.type(
-        screen.getByRole('textbox', { name: 'Coordenadas' }),
+        screen.getByRole('textbox', { name: 'Ubicacion' }),
         validFormData.ubicacion,
       )
       await user.type(
@@ -374,10 +374,7 @@ describe('SaltoForm', () => {
       render(<SaltoForm />)
 
       await user.type(screen.getByLabelText('Nombre del destino'), 'Test')
-      await user.type(
-        screen.getByLabelText('Coordenadas'),
-        '-27.0875, -54.4444',
-      )
+      await user.type(screen.getByLabelText('Ubicacion'), 'Iguazú')
       await user.type(
         screen.getByLabelText('Link a Google Maps'),
         'https://maps.google.com',

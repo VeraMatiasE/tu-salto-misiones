@@ -350,7 +350,6 @@ describe('Usuarios Service', () => {
       const nuevoUsuario = {
         nombre: 'Nuevo Usuario',
         email: 'nuevo@example.com',
-        contrasena: 'password123',
         rol: false,
         estatus: true,
       }
@@ -385,7 +384,6 @@ describe('Usuarios Service', () => {
       const nuevoUsuario = {
         nombre: 'Nuevo Usuario',
         email: 'nuevo@example.com',
-        contrasena: 'password123',
         rol: false,
         estatus: true,
       }
