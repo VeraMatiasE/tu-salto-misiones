@@ -140,7 +140,7 @@ export default function SignUpPage() {
 
     startTransition(async () => {
       const form = new FormData()
-      form.append('username', formData.username)
+      form.append('nombre', formData.username)
       form.append('email', formData.email)
       form.append('password', formData.password)
       form.append('repeatPassword', formData.password)
