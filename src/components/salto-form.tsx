@@ -39,7 +39,7 @@ const formSchema = z.object({
     message: 'La descripción debe tener al menos 10 caracteres.',
   }),
   ubicacion: z.string().min(5, {
-    message: 'Ingresa coordenadas válidas.',
+    message: 'La ubicación debe de tener al menos 5 caracteres.',
   }),
   url_mapa: z.string().url({
     message: 'Ingresa una URL válida de Google Maps.',
@@ -175,12 +175,12 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
                 name="ubicacion"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Coordenadas</FormLabel>
+                    <FormLabel>Ubicación</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          aria-label="Coordenadas"
-                          placeholder="Ej. -27.0875, -54.4444"
+                          aria-label="Ubicacion"
+                          placeholder="Ej: Cataratas del Iguazú, Misiones"
                           {...field}
                         />
                         <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
