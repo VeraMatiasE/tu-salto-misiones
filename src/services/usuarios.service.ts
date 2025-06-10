@@ -5,6 +5,8 @@ import {
   PaginationMeta,
   PaginationParams,
 } from '@/types/pagination'
+import cloudinary from '@/lib/cloudnary'
+import { UploadApiResponse } from 'cloudinary'
 
 export async function getUsuarios(
   params: PaginationParams = {},
@@ -172,6 +174,47 @@ export async function getUserByUid(
   }
 }
 
+export async function getUserIdByUid(
+  uid_usuario: string,
+): Promise<ApiResponse<Pick<Usuario, 'id_usuario'>>> {
+  try {
+    const supabase = await createSupabaseClient()
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('id_usuario')
+      .eq('uid_usuario', uid_usuario)
+      .eq('estatus', true)
+      .single()
+
+    if (error) {
+      console.error('Error al obtener el ID:', error)
+      return {
+        success: false,
+        error: 'Error al obtener datos del usuario',
+      }
+    }
+
+    if (!data) {
+      return {
+        success: false,
+        error: 'Usuario no encontrado',
+      }
+    }
+
+    return {
+      success: true,
+      data: data,
+    }
+  } catch (error) {
+    console.error('Error en getUserByUid:', error)
+    return {
+      success: false,
+      error: 'Error interno al obtener usuario',
+    }
+  }
+}
+
 export async function createUsuario(
   usuario: Omit<
     Usuario,
@@ -266,6 +309,97 @@ export async function deleteUsuario(id: number): Promise<ApiResponse<null>> {
         error instanceof Error
           ? error.message
           : `Error desconocido al eliminar usuario con ID ${id}`,
+    }
+  }
+}
+
+interface AvatarData {
+  public_id: string
+}
+
+function normalizeError(error: unknown): Error {
+  if (error instanceof Error) return error
+  const message = typeof error === 'string' ? error : JSON.stringify(error)
+  return new Error(message)
+}
+
+export async function uploadAvatar(
+  image: File,
+  userId: number,
+): Promise<ApiResponse<AvatarData>> {
+  try {
+    const supabase = await createSupabaseClient()
+    const arrayBuffer = await image.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const { data: existingAvatar } = await supabase
+      .from('usuarios')
+      .select('foto_perfil')
+      .eq('id_usuario', userId)
+      .single()
+
+    if (existingAvatar?.foto_perfil) {
+      await cloudinary.uploader.destroy(existingAvatar.foto_perfil)
+    }
+
+    const cloudinaryResult: UploadApiResponse = await new Promise(
+      (resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: `avatar/${userId}`,
+            resource_type: 'image',
+            transformation: [{ quality: 'auto' }, { fetch_format: 'auto' }],
+          },
+          (error, result) => {
+            if (error) {
+              const safeError: Error = normalizeError(error)
+              reject(safeError)
+              return
+            }
+
+            if (!result) {
+              reject(new Error('No se recibió respuesta de Cloudinary'))
+              return
+            }
+
+            resolve(result)
+          },
+        )
+
+        stream.end(buffer)
+      },
+    )
+
+    const imageData = {
+      public_id: cloudinaryResult.public_id,
+      imageUrl: cloudinaryResult.url,
+    }
+
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ foto_perfil: imageData.public_id })
+      .eq('id_usuario', userId)
+      .select()
+      .single()
+
+    if (error) {
+      await await cloudinary.uploader.destroy(imageData.public_id)
+      throw new Error(`Error al guardar metadatos: ${error.message}`)
+    }
+
+    return {
+      success: true,
+      data: imageData as AvatarData,
+      message: 'Imagen creada exitosamente',
+    }
+  } catch (error) {
+    console.error('Error al crear imagen:', error)
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error desconocido al crear imagen',
     }
   }
 }

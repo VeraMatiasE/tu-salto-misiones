@@ -7,18 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
 import { useEffect, useState } from 'react'
-
-interface UserProfile {
-  id: string
-  email: string
-  nombre?: string
-  foto_perfil?: string
-}
-
-interface UserData {
-  user: UserData
-  profile: UserProfile
-}
+import { UserData } from '@/types/usuario'
 
 interface SaltoFavorito {
   id_destino: string
@@ -118,7 +107,7 @@ export default function PerfilPage() {
         {/* Perfil del Usuario */}
         <Card className="mb-8">
           <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex flex-col md:flex-row items-start gap-6">
               <Avatar className="w-24 h-24 md:w-32 md:h-32 border border-black">
                 <AvatarImage
                   src={userData.profile.foto_perfil}
@@ -142,13 +131,16 @@ export default function PerfilPage() {
                     </h1>
                     <p className="text-gray-600">{userData.profile.email}</p>
                   </div>
-                  <Link href="/perfil/editar" className="mt-4 md:mt-0">
+                  <Link href="/profile/edit" className="mt-4 md:mt-0">
                     <Button variant={'default'}>
                       <Edit className="h-4 w-4 mr-2" />
                       Editar Perfil
                     </Button>
                   </Link>
                 </div>
+                <p className="text-gray-700 leading-relaxed">
+                  {userData.profile.intereses}
+                </p>
               </div>
             </div>
           </CardContent>
