@@ -108,7 +108,9 @@ export default function EditarPerfilPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,6 +128,7 @@ export default function EditarPerfilPage() {
 
         const user: UserData = await userResponse.json()
         setFormData(user.profile)
+        setOriginalImageUrl(user.profile.foto_perfil ?? null)
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -164,6 +167,25 @@ export default function EditarPerfilPage() {
       }
 
       const validatedData = validationResult.data
+      let imageUrl = formData.foto_perfil
+
+      if (selectedImageFile) {
+        const formDataUpload = new FormData()
+        formDataUpload.append('image', selectedImageFile)
+
+        const imageResponse = await fetch('/api/usuarios/foto-perfil', {
+          method: 'POST',
+          body: formDataUpload,
+        })
+
+        if (!imageResponse.ok) {
+          const errorData = await imageResponse.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Error al subir la imagen')
+        }
+
+        const uploadResult = await imageResponse.json()
+        imageUrl = uploadResult?.data?.public_id || ''
+      }
 
       const response = await fetch('/api/auth/user', {
         method: 'PUT',
@@ -173,7 +195,7 @@ export default function EditarPerfilPage() {
         body: JSON.stringify({
           nombre: validatedData.nombre,
           intereses: validatedData.intereses,
-          foto_perfil: validatedData.foto_perfil,
+          foto_perfil: imageUrl,
         }),
       })
 
@@ -216,16 +238,14 @@ export default function EditarPerfilPage() {
     }
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !formData) return
 
     try {
-      setUploadingImage(true)
       setErrors({ ...errors, imagen: undefined })
 
       const fileValidation = imageFileSchema.safeParse({ file })
-
       if (!fileValidation.success) {
         const zodErrors = formatZodErrors(fileValidation.error)
         const firstError =
@@ -237,48 +257,27 @@ export default function EditarPerfilPage() {
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
-          setPreviewImage(event.target.result as string)
+          setPreviewImageUrl(event.target.result as string)
+          setSelectedImageFile(file)
         }
       }
       reader.readAsDataURL(file)
-
-      const formDataUpload = new FormData()
-      formDataUpload.append('image', file)
-
-      const response = await fetch('/api/usuarios/foto-perfil', {
-        method: 'POST',
-        body: formDataUpload,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        setPreviewImage(null)
-        throw new Error(errorData.message || 'Error al subir la imagen')
-      }
-
-      interface UploadResponse {
-        data?: {
-          imageUrl?: string
-          publicId?: string
-        }
-      }
-
-      const uploadResult: UploadResponse = await response.json()
-
-      setFormData({
-        ...formData,
-        foto_perfil:
-          uploadResult?.data?.publicId || uploadResult?.data?.imageUrl || '',
-      })
-
-      setPreviewImage(null)
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Error al subir la imagen'
+        error instanceof Error ? error.message : 'Error al procesar la imagen'
       setErrors({ ...errors, imagen: errorMessage })
-      setPreviewImage(null)
-    } finally {
-      setUploadingImage(false)
+    }
+  }
+
+  const handleCancelImageChange = () => {
+    setSelectedImageFile(null)
+    setPreviewImageUrl(null)
+    // Limpiar el input file
+    const fileInput = document.getElementById(
+      'avatar-upload',
+    ) as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ''
     }
   }
 
@@ -412,58 +411,78 @@ export default function EditarPerfilPage() {
                 {/* Avatar */}
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="w-24 h-24">
-                    {previewImage ? (
+                    {previewImageUrl ? (
                       // Mostrar preview temporal usando img normal
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={previewImage}
+                        src={previewImageUrl}
                         alt="Preview"
                         className="w-full h-full object-cover rounded-full"
                       />
-                    ) : (
+                    ) : originalImageUrl ? (
                       // Mostrar imagen de Cloudinary o fallback
                       <AvatarImage
                         src={formData.foto_perfil}
                         alt={formData.nombre ?? 'Foto de perfil'}
                       />
+                    ) : (
+                      <AvatarFallback className="text-2xl bg-teal-500 text-white">
+                        {formData.nombre
+                          ? formData.nombre
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                          : 'U'}
+                      </AvatarFallback>
                     )}
-                    <AvatarFallback className="text-2xl bg-teal-500 text-white">
-                      {formData.nombre
-                        ? formData.nombre
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                        : 'U'}
-                    </AvatarFallback>
                   </Avatar>
 
-                  <div className="text-center">
-                    <input
-                      type="file"
-                      id="avatar-upload"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                    <Label htmlFor="avatar-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="cursor-pointer"
-                        disabled={uploadingImage}
-                        asChild
-                      >
-                        <span>
-                          {uploadingImage ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4 mr-2" />
-                          )}
-                          {uploadingImage ? 'Subiendo...' : 'Cambiar foto'}
-                        </span>
-                      </Button>
-                    </Label>
+                  <div className="text-center space-y-2">
+                    <div className="flex gap-2 justify-center">
+                      <input
+                        type="file"
+                        id="avatar-upload"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        disabled={saving}
+                      />
+                      <Label htmlFor="avatar-upload">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="cursor-pointer"
+                          disabled={saving}
+                          asChild
+                        >
+                          <span>
+                            {saving ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4 mr-2" />
+                            )}
+                            {saving ? 'Subiendo...' : 'Cambiar foto'}
+                          </span>
+                        </Button>
+                      </Label>
+
+                      {selectedImageFile && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={handleCancelImageChange}
+                          disabled={saving}
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                    {selectedImageFile && (
+                      <p className="text-sm text-blue-600">
+                        Nueva imagen seleccionada. Se guardará al confirmar los
+                        cambios.
+                      </p>
+                    )}
 
                     {errors.imagen && (
                       <p className="text-sm text-red-600 mt-1">

@@ -1,4 +1,4 @@
-import { uploadAvatar } from '@/services/usuarios.service'
+import { uploadAvatarToCloudinary } from '@/services/usuarios.service'
 import { getUserIdByUid } from '@/services/usuarios.service'
 import { createSupabaseClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       error,
     } = await supabase.auth.getUser()
 
-    if (!user?.id) throw new Error(error?.message ?? 'Error')
+    if (!user?.id) throw new Error(error?.message ?? 'Error de autenticación')
 
     const formData = await request.formData()
     const image = formData.get('image') as File
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(image.type)) {
       return NextResponse.json(
-        { message: 'El archivo debe ser una imagen' },
+        { message: 'El archivo debe ser una imagen (JPG, PNG, WebP)' },
         { status: 400 },
       )
     }
@@ -40,19 +40,24 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: userData, error: errorUser } = await getUserIdByUid(user.id)
+    if (errorUser || userData == undefined) {
+      throw new Error(errorUser ?? 'Error al obtener datos del usuario')
+    }
 
-    if (errorUser || userData == undefined)
-      throw new Error(error?.message ?? 'Error')
+    const result = await uploadAvatarToCloudinary(image, userData.id_usuario)
 
-    const result = await uploadAvatar(image, userData.id_usuario)
+    if (!result.success) {
+      throw new Error(result.error)
+    }
 
-    if (!result.success) throw result.error
-
-    return NextResponse.json(result, { status: 201 })
+    return NextResponse.json(result, { status: 200 })
   } catch (error) {
     console.error('Error en upload:', error)
     return NextResponse.json(
-      { message: 'Error interno del servidor' },
+      {
+        message:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
       { status: 500 },
     )
   }

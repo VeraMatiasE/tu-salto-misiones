@@ -315,6 +315,13 @@ export async function deleteUsuario(id: number): Promise<ApiResponse<null>> {
 
 interface AvatarData {
   public_id: string
+  imageUrl: string
+}
+
+interface AvatarUpdateData {
+  oldPublicId?: string
+  newPublicId: string
+  imageUrl: string
 }
 
 function normalizeError(error: unknown): Error {
@@ -323,24 +330,13 @@ function normalizeError(error: unknown): Error {
   return new Error(message)
 }
 
-export async function uploadAvatar(
+export async function uploadAvatarToCloudinary(
   image: File,
   userId: number,
 ): Promise<ApiResponse<AvatarData>> {
   try {
-    const supabase = await createSupabaseClient()
     const arrayBuffer = await image.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-
-    const { data: existingAvatar } = await supabase
-      .from('usuarios')
-      .select('foto_perfil')
-      .eq('id_usuario', userId)
-      .single()
-
-    if (existingAvatar?.foto_perfil) {
-      await cloudinary.uploader.destroy(existingAvatar.foto_perfil)
-    }
 
     const cloudinaryResult: UploadApiResponse = await new Promise(
       (resolve, reject) => {
@@ -356,16 +352,13 @@ export async function uploadAvatar(
               reject(safeError)
               return
             }
-
             if (!result) {
               reject(new Error('No se recibió respuesta de Cloudinary'))
               return
             }
-
             resolve(result)
           },
         )
-
         stream.end(buffer)
       },
     )
@@ -375,31 +368,94 @@ export async function uploadAvatar(
       imageUrl: cloudinaryResult.url,
     }
 
-    const { error } = await supabase
-      .from('usuarios')
-      .update({ foto_perfil: imageData.public_id })
-      .eq('id_usuario', userId)
-      .select()
-      .single()
-
-    if (error) {
-      await await cloudinary.uploader.destroy(imageData.public_id)
-      throw new Error(`Error al guardar metadatos: ${error.message}`)
-    }
-
     return {
       success: true,
-      data: imageData as AvatarData,
-      message: 'Imagen creada exitosamente',
+      data: imageData,
+      message: 'Imagen subida exitosamente a Cloudinary',
     }
   } catch (error) {
-    console.error('Error al crear imagen:', error)
+    console.error('Error al subir imagen a Cloudinary:', error)
     return {
       success: false,
       error:
         error instanceof Error
           ? error.message
-          : 'Error desconocido al crear imagen',
+          : 'Error desconocido al subir imagen',
     }
+  }
+}
+
+export async function updateUserAvatar(
+  userId: number,
+  newPublicId: string,
+): Promise<ApiResponse<AvatarUpdateData>> {
+  try {
+    const supabase = await createSupabaseClient()
+
+    const { data: existingUser } = await supabase
+      .from('usuarios')
+      .select('foto_perfil')
+      .eq('id_usuario', userId)
+      .single()
+
+    console.log(existingUser)
+    const oldPublicId = existingUser?.foto_perfil
+
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ foto_perfil: newPublicId })
+      .eq('id_usuario', userId)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Error al actualizar avatar: ${error.message}`)
+    }
+
+    if (oldPublicId && oldPublicId !== newPublicId) {
+      try {
+        console.log('Destoing: ', oldPublicId)
+        const test = await cloudinary.uploader.destroy(oldPublicId)
+        console.log('Yes, deleted: ', test)
+      } catch (deleteError) {
+        console.warn('Error al eliminar imagen anterior:', deleteError)
+      }
+    }
+
+    const imageUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${newPublicId}`
+
+    return {
+      success: true,
+      data: {
+        oldPublicId,
+        newPublicId,
+        imageUrl,
+      },
+      message: 'Avatar actualizado exitosamente',
+    }
+  } catch (error) {
+    console.error('Error al actualizar avatar:', error)
+
+    try {
+      await cloudinary.uploader.destroy(newPublicId)
+    } catch (cleanupError) {
+      console.warn('Error al limpiar imagen tras fallo:', cleanupError)
+    }
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error desconocido al actualizar avatar',
+    }
+  }
+}
+
+export async function cleanupUnusedImage(publicId: string): Promise<void> {
+  try {
+    await cloudinary.uploader.destroy(publicId)
+  } catch (error) {
+    console.warn('Error al limpiar imagen no utilizada:', error)
   }
 }
