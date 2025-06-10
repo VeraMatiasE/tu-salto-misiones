@@ -30,7 +30,7 @@ interface DestinoData {
   ubicacion: string
 }
 
-interface Reseña {
+interface Resena {
   id_resena: string
   calificacion: number
   destinos: DestinoData
@@ -42,7 +42,7 @@ interface Reseña {
 export default function PerfilPage() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [saltosGuardados, setSaltosGuardados] = useState<SaltoFavorito[]>([])
-  const [historialReseñas, setHistorialReseñas] = useState<Reseña[]>([])
+  const [historialResenas, setHistorialResenas] = useState<Resena[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,10 +65,10 @@ export default function PerfilPage() {
           setSaltosGuardados(favoritos.data)
         }
 
-        const reseñasResponse = await fetch(`/api/usuarios/resenas`)
-        if (reseñasResponse.ok) {
-          const reseñas = await reseñasResponse.json()
-          setHistorialReseñas(reseñas.data)
+        const resenasResponse = await fetch(`/api/usuarios/resenas`)
+        if (resenasResponse.ok) {
+          const resenas = await resenasResponse.json()
+          setHistorialResenas(resenas.data)
         }
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Error desconocido')
@@ -191,10 +191,10 @@ export default function PerfilPage() {
               Historial de reseñas
             </h2>
             <div className="space-y-6">
-              {historialReseñas.length > 0 ? (
-                historialReseñas.map((reseña) => (
+              {historialResenas.length > 0 ? (
+                historialResenas.map((resena) => (
                   <div
-                    key={reseña.id_resena}
+                    key={resena.id_resena}
                     className="border-b border-gray-200 pb-6 last:border-b-0"
                   >
                     <div className="flex items-center gap-2 mb-3">
@@ -203,7 +203,7 @@ export default function PerfilPage() {
                           <Star
                             key={star}
                             className={`h-5 w-5 ${
-                              star <= reseña.calificacion
+                              star <= resena.calificacion
                                 ? 'text-teal-500 fill-current'
                                 : 'text-gray-300'
                             }`}
@@ -211,17 +211,17 @@ export default function PerfilPage() {
                         ))}
                       </div>
                       <span className="text-sm text-gray-500">
-                        • {reseña.destinos.nombre}
+                        • {resena.destinos.nombre}
                       </span>
                       <span className="text-sm text-gray-400">
                         •{' '}
                         {new Date(
-                          reseña.fecha_actualizacion,
+                          resena.fecha_actualizacion,
                         ).toLocaleDateString()}
                       </span>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed">
-                      {reseña.comentario}
+                      {resena.comentario}
                     </p>
                   </div>
                 ))

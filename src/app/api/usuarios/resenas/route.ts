@@ -10,13 +10,13 @@ import { getUserByUid } from '@/services/usuarios.service'
 import { createSupabaseClient } from '@/utils/supabase/server'
 import type { PaginationParams } from '@/types/pagination'
 
-interface CreateReseñaRequest {
+interface CreateResenaRequest {
   id_destino: number
   calificacion: number
   comentario?: string
 }
 
-interface UpdateReseñaRequest {
+interface UpdateResenaRequest {
   id_resena: number
   calificacion: number
   comentario?: string
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     const userId = userResult.data.id_usuario
 
-    const body: CreateReseñaRequest = await request.json()
+    const body: CreateResenaRequest = await request.json()
     const { id_destino, calificacion, comentario } = body
 
     if (!id_destino || !calificacion || calificacion < 1 || calificacion > 5) {
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       id_usuario: userId,
       id_destino,
       calificacion,
-      comentario: comentario || '',
+      comentario: comentario ?? '',
       estatus: true,
     })
 
@@ -158,7 +158,7 @@ export async function PUT(request: NextRequest) {
 
     const userId = userResult.data.id_usuario
 
-    const body: UpdateReseñaRequest = await request.json()
+    const body: UpdateResenaRequest = await request.json()
     const { id_resena, calificacion, comentario } = body
 
     if (!id_resena || !calificacion || calificacion < 1 || calificacion > 5) {
@@ -188,7 +188,7 @@ export async function PUT(request: NextRequest) {
 
     const result = await updateResena(id_resena, {
       calificacion,
-      comentario: comentario || '',
+      comentario: comentario ?? '',
     })
 
     if (!result.success) {
@@ -228,24 +228,24 @@ export async function DELETE(request: NextRequest) {
     const userId = userResult.data.id_usuario
 
     const { searchParams } = new URL(request.url)
-    const reseñaIdParam = searchParams.get('reseñaId')
+    const resenaIdParam = searchParams.get('reseñaId')
 
-    if (!reseñaIdParam) {
+    if (!resenaIdParam) {
       return NextResponse.json(
         { error: 'ID de reseña requerido' },
         { status: 400 },
       )
     }
 
-    const reseñaId = parseInt(reseñaIdParam)
-    if (isNaN(reseñaId)) {
+    const resenaId = parseInt(resenaIdParam)
+    if (isNaN(resenaId)) {
       return NextResponse.json(
         { error: 'ID de reseña inválido' },
         { status: 400 },
       )
     }
 
-    const existingReviewResult = await getResenaById(reseñaId)
+    const existingReviewResult = await getResenaById(resenaId)
     if (!existingReviewResult.success || !existingReviewResult.data) {
       return NextResponse.json(
         { error: 'Reseña no encontrada' },
@@ -260,7 +260,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const result = await deleteResena(reseñaId)
+    const result = await deleteResena(resenaId)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 })

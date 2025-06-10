@@ -124,6 +124,56 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function respondError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status })
+}
+
+async function getFavoritoIdFromParams(
+  userId: number,
+  favoritoIdParam: string | null,
+  destinoIdParam: string | null,
+) {
+  if (favoritoIdParam) {
+    const favoritoId = parseInt(favoritoIdParam)
+    if (isNaN(favoritoId)) {
+      return { error: await respondError('ID de favorito inválido', 400) }
+    }
+    return { favoritoId }
+  }
+
+  if (destinoIdParam) {
+    const destinoId = parseInt(destinoIdParam)
+    if (isNaN(destinoId)) {
+      return { error: await respondError('ID de destino inválido', 400) }
+    }
+
+    const favoritosResult = await getFavoritosByUsuario(userId, {
+      page: 1,
+      limit: 1000,
+      orderBy: 'fecha_actualizacion',
+      orderDirection: 'desc',
+    })
+
+    if (!favoritosResult.success || !favoritosResult.data) {
+      return { error: await respondError('Error al buscar favoritos', 500) }
+    }
+
+    const favorito = favoritosResult.data.data.find(
+      (fav) => fav.id_destino === destinoId,
+    )
+
+    if (!favorito) {
+      return { error: await respondError('Favorito no encontrado', 404) }
+    }
+
+    return { favoritoId: favorito.id_favorito }
+  }
+
+  return {
+    error: await respondError('ID de favorito o ID de destino requerido', 400),
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createSupabaseClient()
@@ -133,15 +183,12 @@ export async function DELETE(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+      return respondError('No autorizado', 401)
     }
 
     const userResult = await getUserByUid(user.id)
     if (!userResult.success || !userResult.data) {
-      return NextResponse.json(
-        { error: 'Usuario no encontrado en la base de datos' },
-        { status: 404 },
-      )
+      return respondError('Usuario no encontrado en la base de datos', 404)
     }
 
     const userId = userResult.data.id_usuario
@@ -150,96 +197,33 @@ export async function DELETE(request: NextRequest) {
     const favoritoIdParam = searchParams.get('favoritoId')
     const destinoIdParam = searchParams.get('destinoId')
 
-    if (!favoritoIdParam && !destinoIdParam) {
-      return NextResponse.json(
-        { error: 'ID de favorito o ID de destino requerido' },
-        { status: 400 },
-      )
-    }
-
-    let favoritoId: number
-
-    if (favoritoIdParam) {
-      favoritoId = parseInt(favoritoIdParam)
-      if (isNaN(favoritoId)) {
-        return NextResponse.json(
-          { error: 'ID de favorito inválido' },
-          { status: 400 },
-        )
-      }
-    } else if (destinoIdParam) {
-      const destinoId = parseInt(destinoIdParam)
-      if (isNaN(destinoId)) {
-        return NextResponse.json(
-          { error: 'ID de destino inválido' },
-          { status: 400 },
-        )
-      }
-
-      const favoritosResult = await getFavoritosByUsuario(userId, {
-        page: 1,
-        limit: 1000,
-        orderBy: 'fecha_actualizacion',
-        orderDirection: 'desc',
-      })
-
-      if (!favoritosResult.success || !favoritosResult.data) {
-        return NextResponse.json(
-          { error: 'Error al buscar favoritos' },
-          { status: 500 },
-        )
-      }
-
-      const favorito = favoritosResult.data.data.find(
-        (fav) => fav.id_destino === destinoId,
-      )
-
-      if (!favorito) {
-        return NextResponse.json(
-          { error: 'Favorito no encontrado' },
-          { status: 404 },
-        )
-      }
-
-      favoritoId = favorito.id_favorito
-      return NextResponse.json(
-        { error: 'ID de favorito o ID de destino requerido' },
-        { status: 400 },
-      )
-    } else {
-      return NextResponse.json(
-        { error: 'ID de favorito o ID de destino requerido' },
-        { status: 400 },
-      )
-    }
+    const { favoritoId, error } = await getFavoritoIdFromParams(
+      userId,
+      favoritoIdParam,
+      destinoIdParam,
+    )
+    if (error) return error
 
     const existingFavoritoResult = await getFavoritoById(favoritoId)
     if (!existingFavoritoResult.success || !existingFavoritoResult.data) {
-      return NextResponse.json(
-        { error: 'Favorito no encontrado' },
-        { status: 404 },
-      )
+      return respondError('Favorito no encontrado', 404)
     }
 
     if (existingFavoritoResult.data.id_usuario !== userId) {
-      return NextResponse.json(
-        { error: 'No tienes permisos para eliminar este favorito' },
-        { status: 403 },
-      )
+      return respondError('No tienes permisos para eliminar este favorito', 403)
     }
 
     const result = await deleteFavorito(favoritoId)
-
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 })
+      return respondError(
+        result.error ?? 'No se pudo eliminar el favorito',
+        500,
+      )
     }
 
     return NextResponse.json({ message: 'Favorito eliminado exitosamente' })
   } catch (error) {
     console.error('Error al eliminar favorito:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 },
-    )
+    return respondError('Error interno del servidor', 500)
   }
 }
