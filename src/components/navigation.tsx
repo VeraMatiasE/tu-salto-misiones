@@ -46,6 +46,7 @@ function useUserProfile(isAuthenticated: boolean) {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      setUserProfile(null)
       setLoading(false)
       return
     }
@@ -129,6 +130,33 @@ interface NavItem {
   page?: NavegationPropsMobile
 }
 
+type NavLinkProps = Readonly<{
+  item: NavItem
+  isActive: boolean
+  onClick?: () => void
+  isMobile: boolean
+}>
+
+const MobileNavLink = ({ item, isActive, onClick }: NavLinkProps) => {
+  const Icon = item.icon
+  const baseLinkClass =
+    'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors data-[active=true]:bg-white'
+
+  return (
+    <Link
+      data-active={isActive}
+      href={item.href}
+      className={baseLinkClass}
+      onClick={onClick}
+    >
+      <Button variant="sidebar">
+        {Icon && <Icon size={18} />}
+        {item.label}
+      </Button>
+    </Link>
+  )
+}
+
 function NavigationLinks({
   isAuthenticated,
   currentPage,
@@ -181,38 +209,15 @@ function NavigationLinks({
 
   const visibleItems = getVisibleItems()
 
-  const baseLinkClass = isMobile
-    ? 'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors data-[active=true]:bg-white'
-    : 'relative h-full flex items-center px-4 text-gray-700 hover:text-header-primary font-medium transition-all duration-300 group'
-
-  const activeLinkClass = 'text-header-primary font-semibold'
-
-  const MobileNavLink = ({ item }: { item: NavItem }) => {
-    const Icon = item.icon
-    const active = item.page ? isActive(item.page) : false
-
-    return (
-      <Link
-        data-active={active}
-        href={item.href}
-        className={baseLinkClass}
-        onClick={onLinkClick}
-      >
-        <Button variant="sidebar">
-          {Icon && <Icon size={18} />}
-          {item.label}
-        </Button>
-      </Link>
-    )
-  }
-
-  const DesktopNavLink = ({ item }: { item: NavItem }) => {
-    const active = item.page ? isActive(item.page) : false
+  const DesktopNavLink = ({ item, isActive }: NavLinkProps) => {
+    const baseLinkClass =
+      'relative h-full flex items-center px-4 text-gray-700 hover:text-header-primary font-medium transition-all duration-300 group'
+    const activeLinkClass = 'text-header-primary font-semibold'
 
     return (
       <Link
         href={item.href}
-        className={`${baseLinkClass} ${active ? activeLinkClass : ''}`}
+        className={`${baseLinkClass} ${isActive ? activeLinkClass : ''}`}
       >
         {item.label}
         <span className="absolute bottom-0 left-1/2 w-0 h-[3px] bg-header-primary transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
@@ -220,25 +225,29 @@ function NavigationLinks({
     )
   }
 
-  if (isMobile) {
-    return (
-      <div className="p-4 space-y-1">
-        <div className="text-md font-semibold text-header-primary/60 uppercase tracking-wider mb-4 px-2">
-          Navegación
-        </div>
-        {visibleItems.map((item, index) => (
-          <MobileNavLink key={`${item.href}-${index}`} item={item} />
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <div className="flex h-full space-x-1 items-center">
-      {visibleItems.map((item, index) => (
-        <DesktopNavLink key={`${item.href}-${index}`} item={item} />
-      ))}
-    </div>
+    <>
+      {visibleItems.map((item) => {
+        const active = item.page ? isActive(item.page) : false
+
+        return isMobile ? (
+          <MobileNavLink
+            key={item.href}
+            item={item}
+            isActive={active}
+            onClick={onLinkClick}
+            isMobile={isMobile}
+          />
+        ) : (
+          <DesktopNavLink
+            key={item.href}
+            item={item}
+            isActive={active}
+            isMobile={isMobile}
+          />
+        )
+      })}
+    </>
   )
 }
 
