@@ -143,6 +143,7 @@ export default function SignUpPage() {
       form.append('username', formData.username)
       form.append('email', formData.email)
       form.append('password', formData.password)
+      form.append('repeatPassword', formData.password)
 
       const result = (await signUp(form)) as SignUpResponse
 
