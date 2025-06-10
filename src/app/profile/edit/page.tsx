@@ -107,7 +107,6 @@ export default function EditarPerfilPage() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
@@ -553,14 +552,14 @@ export default function EditarPerfilPage() {
                     variant="outline"
                     onClick={() => router.back()}
                     className="flex-1"
-                    disabled={saving || uploadingImage}
+                    disabled={saving}
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
                     className="flex-1 bg-teal-500 hover:bg-teal-600"
-                    disabled={saving || uploadingImage}
+                    disabled={saving}
                   >
                     {saving ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -589,7 +588,7 @@ export default function EditarPerfilPage() {
                     <p className="text-sm text-gray-600">{formData.email}</p>
                   </div>
                 </div>
-                <Link href="/perfil/cambiar-email">
+                <Link href="/profile/edit/change-email">
                   <Button variant="outline" size="sm">
                     Cambiar
                   </Button>
@@ -605,7 +604,7 @@ export default function EditarPerfilPage() {
                     <p className="text-sm text-gray-600">••••••••</p>
                   </div>
                 </div>
-                <Link href="/perfil/cambiar-password">
+                <Link href="/profile/edit/change-password">
                   <Button variant="outline" size="sm">
                     Cambiar
                   </Button>
