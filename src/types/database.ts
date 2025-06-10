@@ -3,7 +3,6 @@ export type Usuario = {
   uid_usuario: string | null
   nombre: string
   email: string
-  contrasena: string
   foto_perfil: string | null
   intereses: string | null
   rol: boolean
@@ -48,6 +47,7 @@ export type Resena = {
 }
 
 export type Favorito = {
+  id_favorito: number
   id_usuario: number
   id_destino: number
   fecha_registro: string

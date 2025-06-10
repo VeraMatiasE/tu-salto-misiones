@@ -131,6 +131,47 @@ export async function getUsuarioByEmail(
   }
 }
 
+export async function getUserByUid(
+  uid_usuario: string,
+): Promise<ApiResponse<Usuario>> {
+  try {
+    const supabase = await createSupabaseClient()
+
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('uid_usuario', uid_usuario)
+      .eq('estatus', true)
+      .single()
+
+    if (error) {
+      console.error('Error al obtener usuario por UID:', error)
+      return {
+        success: false,
+        error: 'Error al obtener datos del usuario',
+      }
+    }
+
+    if (!data) {
+      return {
+        success: false,
+        error: 'Usuario no encontrado',
+      }
+    }
+
+    return {
+      success: true,
+      data: data as Usuario,
+    }
+  } catch (error) {
+    console.error('Error en getUserByUid:', error)
+    return {
+      success: false,
+      error: 'Error interno al obtener usuario',
+    }
+  }
+}
+
 export async function createUsuario(
   usuario: Omit<
     Usuario,
