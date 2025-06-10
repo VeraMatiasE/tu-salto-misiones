@@ -19,7 +19,10 @@ const signUpSchema = z
       .min(6, 'La contraseña debe tener al menos 6 caracteres'),
     repeatPassword: z.string(),
     nombre: z.string().optional(),
-    rol: z.union([z.literal('true'), z.literal('false')]).optional(),
+    rol: z
+      .union([z.literal('true'), z.literal('false')])
+      .optional()
+      .nullable(),
   })
   .refine((data) => data.password === data.repeatPassword, {
     path: ['repeatPassword'],
@@ -73,7 +76,6 @@ export async function signUp(formData: FormData): Promise<SignUpActionResult> {
       email: authData.user.email,
       rol: rol === 'true',
       uid_usuario: authData.user.id,
-      contrasena: '',
       foto_perfil: null,
       intereses: null,
       estatus: true,

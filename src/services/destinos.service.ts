@@ -30,20 +30,13 @@ export async function getDestinosDestacados(): Promise<
     const destinosConImagenes: SaltosDestacados[] = []
 
     for (const salto of dataSalto) {
-      const { data: dataImagen, error: errorImagen } = await supabase
+      const { data: dataImagen } = await supabase
         .from('imagenes_destino')
         .select('id_imagen, public_id')
         .eq('id_destino', salto.id_destino)
         .eq('estatus', true)
         .limit(1)
         .single()
-
-      if (errorImagen) {
-        console.warn(
-          `No se encontró imagen para destino ${salto.id_destino}:`,
-          errorImagen,
-        )
-      }
 
       destinosConImagenes.push({
         ...salto,
