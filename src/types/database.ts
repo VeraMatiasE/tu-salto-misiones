@@ -47,7 +47,6 @@ export type Resena = {
 }
 
 export type Favorito = {
-  id_favorito: number
   id_usuario: number
   id_destino: number
   fecha_registro: string

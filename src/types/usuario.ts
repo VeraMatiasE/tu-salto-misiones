@@ -10,7 +10,7 @@ export type Usuario = {
 
 export interface UserProfile {
   intereses: string
-  id: string
+  id_usuario: number
   email: string
   nombre?: string
   foto_perfil?: string
