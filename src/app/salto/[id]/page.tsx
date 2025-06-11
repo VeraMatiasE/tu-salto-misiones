@@ -204,7 +204,7 @@ export default function SaltoDetailPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al procesar favorito')
+        throw new Error(errorData.error ?? 'Error al procesar favorito')
       }
 
       const data = await response.json()
@@ -263,7 +263,7 @@ export default function SaltoDetailPage() {
           </h1>
           <p className="text-gray-600 mb-8">
             {error
-              || 'No se pudo encontrar la información del salto solicitado.'}
+              ?? 'No se pudo encontrar la información del salto solicitado.'}
           </p>
           <Button
             onClick={() => window.location.reload()}
@@ -429,13 +429,13 @@ export default function SaltoDetailPage() {
                 Actividades
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                {actividadesPredefinidas.map((actividad, index) => {
+                {actividadesPredefinidas.map((actividad) => {
                   const disponible = saltoData?.infraestructura?.includes(
                     actividad.clave,
                   )
                   return (
                     <div
-                      key={index}
+                      key={actividad.clave}
                       className="flex items-center justify-between p-2 md:p-3 border border-gray-400 rounded-lg bg-white"
                     >
                       <span className="text-sm md:text-base text-gray-700">

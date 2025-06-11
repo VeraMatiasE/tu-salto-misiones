@@ -75,7 +75,7 @@ const ImageDialogContent = React.forwardRef<
 
         const link = document.createElement('a')
         link.href = url
-        link.download = downloadFileName || `image-${src}.jpg`
+        link.download = downloadFileName ?? `image-${src}.jpg`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)

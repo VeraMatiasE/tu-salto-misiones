@@ -60,6 +60,10 @@ export default function GaleriaPage() {
     ? imagesData?.find((img) => img.id_imagen === selectedImage)
     : null
 
+  const displayImageCount = imagesData
+    ? `${imagesData.length} ${imagesData.length === 1 ? 'Imagen' : 'Imágenes'}`
+    : '0 imágenes'
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
@@ -87,21 +91,25 @@ export default function GaleriaPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Galería</h1>
-            <p className="text-gray-600">
-              {imagesData
-                ? `${imagesData.length} ${imagesData.length === 1 ? 'Imagen' : 'Imágenes'}`
-                : '0 imágenes'}
-            </p>
+            <p className="text-gray-600">{displayImageCount}</p>
           </div>
         </div>
 
         {/* Mosaico de imágenes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {imagesData?.map((imagen) => (
-            <div
+            <button
               key={imagen.id_imagen}
-              className="relative aspect-square cursor-pointer group overflow-hidden rounded-lg"
+              className="relative aspect-square group overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
               onClick={() => openModal(imagen.id_imagen)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  openModal(imagen.id_imagen)
+                }
+              }}
+              aria-label={`View image ${imagen.public_id}`}
+              tabIndex={0}
             >
               <CldImage
                 src={imagen.public_id}
@@ -109,8 +117,11 @@ export default function GaleriaPage() {
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
-            </div>
+              <div
+                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 group-focus:bg-black/30 transition-colors duration-300"
+                aria-hidden="true"
+              />
+            </button>
           ))}
         </div>
 
