@@ -11,37 +11,37 @@ export default function Footer() {
 
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white">
-          <div className="group cursor-pointer">
+          <a href="/about" className="group cursor-pointer">
             <div className="flex items-center mb-4 transition-transform duration-300 group-hover:translate-x-2">
               <Info className="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" />
               <h3 className="font-semibold text-lg">Acerca</h3>
             </div>
             <div className="w-8 h-0.5 bg-white/50 transition-all duration-300 group-hover:w-16 group-hover:bg-white"></div>
-          </div>
+          </a>
 
-          <div className="group cursor-pointer">
+          <a href="/contact" className="group cursor-pointer">
             <div className="flex items-center mb-4 transition-transform duration-300 group-hover:translate-x-2">
               <Mail className="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" />
               <h3 className="font-semibold text-lg">Contacto</h3>
             </div>
             <div className="w-8 h-0.5 bg-white/50 transition-all duration-300 group-hover:w-16 group-hover:bg-white"></div>
-          </div>
+          </a>
 
-          <div className="group cursor-pointer">
+          <a href="/team" className="group cursor-pointer">
             <div className="flex items-center mb-4 transition-transform duration-300 group-hover:translate-x-2">
               <Users className="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" />
               <h3 className="font-semibold text-lg">Team developer</h3>
             </div>
             <div className="w-8 h-0.5 bg-white/50 transition-all duration-300 group-hover:w-16 group-hover:bg-white"></div>
-          </div>
+          </a>
 
-          <div className="group cursor-pointer">
+          <a href="/donations" className="group cursor-pointer">
             <div className="flex items-center mb-4 transition-transform duration-300 group-hover:translate-x-2">
               <HelpCircle className="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" />
               <h3 className="font-semibold text-lg">Soporte</h3>
             </div>
             <div className="w-8 h-0.5 bg-white/50 transition-all duration-300 group-hover:w-16 group-hover:bg-white"></div>
-          </div>
+          </a>
         </div>
 
         <div className="flex justify-center space-x-6 mt-12">
