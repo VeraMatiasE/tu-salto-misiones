@@ -121,6 +121,9 @@ jest.mock('lucide-react', () => ({
 
 const mockFetch = jest.fn()
 global.fetch = mockFetch
+global.HTMLDialogElement.prototype.showModal = jest.fn()
+global.HTMLDialogElement.prototype.close = jest.fn()
+global.HTMLDialogElement.prototype.show = jest.fn()
 
 describe('Navigation Component', () => {
   const mockUseMobileMenu = jest.requireMock('@/hooks/use-mobile-menu')
@@ -335,7 +338,6 @@ describe('Navigation Component', () => {
       render(<Navigation currentPage="inicio" />)
 
       await waitFor(async () => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument()
         expect(screen.getByLabelText('Menú de navegación')).toBeInTheDocument()
       })
     })

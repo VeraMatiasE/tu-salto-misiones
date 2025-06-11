@@ -51,7 +51,7 @@ export default function CambiarEmailPage() {
         if (!userResponse.ok) {
           const errorData = await userResponse.json().catch(() => ({}))
           throw new Error(
-            errorData.message || 'Error al cargar datos del usuario',
+            errorData.message ?? 'Error al cargar datos del usuario',
           )
         }
 
@@ -106,7 +106,7 @@ export default function CambiarEmailPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || 'Error al actualizar el correo')
+        throw new Error(errorData.message ?? 'Error al actualizar el correo')
       }
 
       router.push('/profile')

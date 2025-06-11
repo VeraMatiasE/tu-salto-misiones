@@ -1,5 +1,7 @@
-import { uploadAvatarToCloudinary } from '@/services/usuarios.service'
-import { getUserIdByUid } from '@/services/usuarios.service'
+import {
+  uploadAvatarToCloudinary,
+  getUserIdByUid,
+} from '@/services/usuarios.service'
 import { createSupabaseClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 

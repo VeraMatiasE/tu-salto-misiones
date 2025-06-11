@@ -32,7 +32,7 @@ const profileUpdateSchema = z.object({
     .string()
     .max(500, 'Los intereses no pueden exceder 500 caracteres')
     .optional()
-    .transform((val) => val?.trim() || ''),
+    .transform((val) => val?.trim() ?? ''),
 
   foto_perfil: z.string().optional().nullable(),
 })
@@ -71,10 +71,8 @@ const formatZodErrors = (error: z.ZodError): ValidationErrors => {
 
   error.errors.forEach((err) => {
     const field = err.path[0] as keyof ValidationErrors
-    if (!formattedErrors[field]) {
-      formattedErrors[field] = []
-    }
-    formattedErrors[field]?.push(err.message)
+    formattedErrors[field] ??= []
+    formattedErrors[field].push(err.message)
   })
 
   return formattedErrors
@@ -121,7 +119,7 @@ export default function EditarPerfilPage() {
         if (!userResponse.ok) {
           const errorData = await userResponse.json().catch(() => ({}))
           throw new Error(
-            errorData.message || 'Error al cargar datos del usuario',
+            errorData.message ?? 'Error al cargar datos del usuario',
           )
         }
 
@@ -142,9 +140,49 @@ export default function EditarPerfilPage() {
     fetchData()
   }, [])
 
+  const uploadImage = async (imageFile: File): Promise<string> => {
+    const formDataUpload = new FormData()
+    formDataUpload.append('image', imageFile)
+
+    const imageResponse = await fetch('/api/usuarios/foto-perfil', {
+      method: 'POST',
+      body: formDataUpload,
+    })
+
+    if (!imageResponse.ok) {
+      const errorData = await imageResponse.json().catch(() => ({}))
+      throw new Error(errorData.message ?? 'Error al subir la imagen')
+    }
+
+    const uploadResult = await imageResponse.json()
+    return uploadResult?.data?.public_id ?? ''
+  }
+
+  const processServerErrors = (errorData: {
+    errors?: Array<{ field?: string; message: string }>
+    message?: string
+  }): FormErrors => {
+    const serverErrors: FormErrors = {}
+
+    if (Array.isArray(errorData.errors)) {
+      errorData.errors.forEach((error: { field?: string; message: string }) => {
+        if (error.field && error.field in serverErrors) {
+          const field = error.field as keyof FormErrors
+          serverErrors[field] = error.message
+        } else {
+          serverErrors.general = error.message
+        }
+      })
+    } else {
+      serverErrors.general =
+        errorData.message ?? 'Error de validación del servidor'
+    }
+
+    return serverErrors
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!formData) return
 
     try {
@@ -152,12 +190,11 @@ export default function EditarPerfilPage() {
       setErrors({})
 
       const validationData: ProfileUpdateData = {
-        nombre: formData.nombre || '',
-        intereses: formData.intereses || '',
+        nombre: formData.nombre ?? '',
+        intereses: formData.intereses ?? '',
       }
 
       const validationResult = profileUpdateSchema.safeParse(validationData)
-
       if (!validationResult.success) {
         const zodErrors = formatZodErrors(validationResult.error)
         const formErrors = convertToFormErrors(zodErrors)
@@ -169,21 +206,7 @@ export default function EditarPerfilPage() {
       let imageUrl = formData.foto_perfil
 
       if (selectedImageFile) {
-        const formDataUpload = new FormData()
-        formDataUpload.append('image', selectedImageFile)
-
-        const imageResponse = await fetch('/api/usuarios/foto-perfil', {
-          method: 'POST',
-          body: formDataUpload,
-        })
-
-        if (!imageResponse.ok) {
-          const errorData = await imageResponse.json().catch(() => ({}))
-          throw new Error(errorData.message || 'Error al subir la imagen')
-        }
-
-        const uploadResult = await imageResponse.json()
-        imageUrl = uploadResult?.data?.public_id || ''
+        imageUrl = await uploadImage(selectedImageFile)
       }
 
       const response = await fetch('/api/auth/user', {
@@ -200,31 +223,12 @@ export default function EditarPerfilPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-
         if (response.status === 400 && errorData.errors) {
-          const serverErrors: FormErrors = {}
-
-          if (Array.isArray(errorData.errors)) {
-            errorData.errors.forEach(
-              (error: { field?: string; message: string }) => {
-                if (error.field && error.field in serverErrors) {
-                  const field = error.field as keyof FormErrors
-                  serverErrors[field] = error.message
-                } else {
-                  serverErrors.general = error.message
-                }
-              },
-            )
-          } else {
-            serverErrors.general =
-              errorData.message || 'Error de validación del servidor'
-          }
-
+          const serverErrors = processServerErrors(errorData)
           setErrors(serverErrors)
           return
         }
-
-        throw new Error(errorData.message || 'Error al guardar los cambios')
+        throw new Error(errorData.message ?? 'Error al guardar los cambios')
       }
 
       router.push('/profile')
@@ -248,7 +252,7 @@ export default function EditarPerfilPage() {
       if (!fileValidation.success) {
         const zodErrors = formatZodErrors(fileValidation.error)
         const firstError =
-          zodErrors.foto_perfil?.[0] || 'Error de validación del archivo'
+          zodErrors.foto_perfil?.[0] ?? 'Error de validación del archivo'
         setErrors({ ...errors, imagen: firstError })
         return
       }
@@ -379,6 +383,29 @@ export default function EditarPerfilPage() {
     )
   }
 
+  const avatarContent = previewImageUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={previewImageUrl}
+      alt="Preview"
+      className="w-full h-full object-cover rounded-full"
+    />
+  ) : originalImageUrl ? (
+    <AvatarImage
+      src={formData.foto_perfil}
+      alt={formData.nombre ?? 'Foto de perfil'}
+    />
+  ) : (
+    <AvatarFallback className="text-2xl bg-teal-500 text-white">
+      {formData.nombre
+        ? formData.nombre
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+        : 'U'}
+    </AvatarFallback>
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
       <Navigation variant="back" currentPage={'inicio'} />
@@ -409,32 +436,7 @@ export default function EditarPerfilPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar */}
                 <div className="flex flex-col items-center gap-4">
-                  <Avatar className="w-24 h-24">
-                    {previewImageUrl ? (
-                      // Mostrar preview temporal usando img normal
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={previewImageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : originalImageUrl ? (
-                      // Mostrar imagen de Cloudinary o fallback
-                      <AvatarImage
-                        src={formData.foto_perfil}
-                        alt={formData.nombre ?? 'Foto de perfil'}
-                      />
-                    ) : (
-                      <AvatarFallback className="text-2xl bg-teal-500 text-white">
-                        {formData.nombre
-                          ? formData.nombre
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                          : 'U'}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
+                  <Avatar className="w-24 h-24">{avatarContent}</Avatar>
 
                   <div className="text-center space-y-2">
                     <div className="flex gap-2 justify-center">
@@ -497,7 +499,7 @@ export default function EditarPerfilPage() {
                   <Input
                     id="nombre"
                     type="text"
-                    value={formData.nombre || ''}
+                    value={formData.nombre ?? ''}
                     onChange={(e) =>
                       handleInputChangeWithValidation('nombre', e.target.value)
                     }
@@ -514,7 +516,7 @@ export default function EditarPerfilPage() {
                 {/* Intereses */}
                 <div>
                   <Label htmlFor="intereses">
-                    Intereses
+                    Intereses{' '}
                     <span className="text-sm text-gray-500 ml-1">
                       (opcional)
                     </span>
