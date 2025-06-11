@@ -60,9 +60,11 @@ export default function GaleriaPage() {
     ? imagesData?.find((img) => img.id_imagen === selectedImage)
     : null
 
-  const displayImageCount = imagesData
-    ? `${imagesData.length} ${imagesData.length === 1 ? 'Imagen' : 'Imágenes'}`
-    : '0 imágenes'
+  const displayImageCount = () => {
+    if (imagesData)
+      return `${imagesData.length} ${imagesData.length === 1 ? 'Imagen' : 'Imágenes'}`
+    else return '0 imágenes'
+  }
 
   if (loading) {
     return (
@@ -91,7 +93,7 @@ export default function GaleriaPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Galería</h1>
-            <p className="text-gray-600">{displayImageCount}</p>
+            <p className="text-gray-600">{displayImageCount()}</p>
           </div>
         </div>
 

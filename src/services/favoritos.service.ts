@@ -133,7 +133,7 @@ export async function getFavoritosByUsuario(
 
     const processedData =
       data?.map((favorito) => {
-        const resenas = favorito.destinos.resenas || []
+        const resenas = favorito.destinos.resenas ?? []
         const calificacionPromedio =
           resenas.length > 0
             ? resenas.reduce(
@@ -147,7 +147,7 @@ export async function getFavoritosByUsuario(
           ...favorito,
           destinos: {
             ...favorito.destinos,
-            imagen: favorito.destinos.imagenes_destino?.[0] || null,
+            imagen: favorito.destinos.imagenes_destino?.[0] ?? null,
             calificacion: Math.round(calificacionPromedio * 10) / 10, // Redondear a 1 decimal
             imagenes_destino: undefined,
             resenas: undefined,
