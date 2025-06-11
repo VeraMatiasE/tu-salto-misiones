@@ -308,7 +308,7 @@ function AuthButtons({
         </Link>
         <Link
           href="/sign-up"
-          className="text-primary flex items-center gap-3 px-4 py-3 rounded-m hover:bg-header-primary/10 transition-colors font-medium"
+          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md hover:bg-header-primary/10 transition-colors font-medium"
           onClick={onLinkClick}
         >
           <Button variant={'sidebar'}>
