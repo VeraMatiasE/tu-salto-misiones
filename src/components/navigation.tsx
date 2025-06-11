@@ -308,7 +308,7 @@ function AuthButtons({
         </Link>
         <Link
           href="/sign-up"
-          className="text-primary flex items-center gap-3 px-4 py-3 rounded-m hover:bg-header-primary/10 transition-colors font-medium"
+          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md hover:bg-header-primary/10 transition-colors font-medium"
           onClick={onLinkClick}
         >
           <Button variant={'sidebar'}>
@@ -323,25 +323,14 @@ function AuthButtons({
   return (
     <div className="flex items-center space-x-3">
       <Link href="/log-in">
-        <Button
-          variant={variant === 'back' ? 'outline' : 'default'}
-          className={
-            variant === 'back'
-              ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 transition-colors'
-              : 'bg-header-primary'
-          }
-        >
+        <Button variant="default" className="bg-header-primary">
           Iniciar Sesión
         </Button>
       </Link>
       <Link href="/sign-up">
         <Button
           variant="outline"
-          className={
-            variant === 'back'
-              ? 'border-white text-white hover:bg-white hover:text-teal-600 transition-colors'
-              : 'bg-header text-header-primary border-header-primary'
-          }
+          className="bg-header text-header-primary border-header-primary"
         >
           Registrarse
         </Button>
