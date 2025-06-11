@@ -109,15 +109,10 @@ export function SaltosList({ saltos, onSaltoDeleted }: SaltosListProps) {
               <TableRow key={salto.id_destino} className="font-text">
                 <TableCell className="font-medium">{salto.nombre}</TableCell>
                 <TableCell>
-                  <a
-                    href={salto.url_mapa}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-600 hover:underline"
-                  >
+                  <div className="flex items-center text-blue-600">
                     <MapPin className="h-3 w-3 mr-1" />
                     {salto.ubicacion}
-                  </a>
+                  </div>
                 </TableCell>
                 <TableCell>
                   {salto.costo_entrada === 0 ? (
