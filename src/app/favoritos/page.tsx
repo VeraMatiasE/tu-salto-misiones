@@ -93,7 +93,7 @@ export default function FavoritosPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al procesar favorito')
+        throw new Error(errorData.error ?? 'Error al procesar favorito')
       }
 
       setFavorites(favorites.filter((salto) => salto.id_destino !== id))
@@ -213,7 +213,7 @@ export default function FavoritosPage() {
                         <div className="flex items-center mr-3">
                           {[...Array(5)].map((_, i) => (
                             <Star
-                              key={i}
+                              key={`${salto.id_destino}-star-${i}`}
                               className={`h-4 w-4 ${
                                 i < Math.floor(salto.destinos.calificacion)
                                   ? 'text-primary fill-current'
