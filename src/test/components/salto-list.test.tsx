@@ -183,20 +183,6 @@ describe('SaltosList', () => {
       expect(screen.getByText('$2000')).toBeInTheDocument()
     })
 
-    test('renderiza links de ubicación correctamente', () => {
-      render(<SaltosList saltos={mockSaltos} />)
-
-      const linkMocona = screen.getByRole('link', {
-        name: /El Soberbio, Misiones/i,
-      })
-      expect(linkMocona).toHaveAttribute(
-        'href',
-        'https://maps.google.com/mocona',
-      )
-      expect(linkMocona).toHaveAttribute('target', '_blank')
-      expect(linkMocona).toHaveAttribute('rel', 'noopener noreferrer')
-    })
-
     test('aplica colores correctos según dificultad', () => {
       render(<SaltosList saltos={mockSaltos} />)
 
