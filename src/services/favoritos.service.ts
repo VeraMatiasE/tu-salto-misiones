@@ -78,42 +78,6 @@ export async function getFavoritos(
   }
 }
 
-export async function getFavoritoById(
-  id: number,
-): Promise<ApiResponse<Favorito>> {
-  try {
-    const supabase = await createSupabaseClient()
-    const { data, error } = await supabase
-      .from('favoritos')
-      .select(
-        `
-        *,
-        usuarios!inner(nombre, foto_perfil),
-        destinos!inner(nombre, ubicacion, descripcion)
-      `,
-      )
-      .eq('id_favorito', id)
-      .eq('estatus', true)
-      .single()
-
-    if (error) throw error
-
-    return {
-      success: true,
-      data: data as Favorito,
-    }
-  } catch (error) {
-    console.error(`Error al obtener favorito con ID ${id}:`, error)
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : `Error desconocido al obtener favorito con ID ${id}`,
-    }
-  }
-}
-
 export async function getFavoritosByUsuario(
   usuarioId: number,
   params: PaginationParams = {},
@@ -135,7 +99,18 @@ export async function getFavoritosByUsuario(
       .select(
         `
         *,
-        destinos!inner(nombre, ubicacion)
+        destinos!inner(
+          nombre, 
+          ubicacion,
+          dificultad, 
+          imagenes_destino(
+            public_id,
+            url_imagen
+          ),
+          resenas(
+            calificacion
+          )
+        )
       `,
         { count: 'exact' },
       )
@@ -156,6 +131,30 @@ export async function getFavoritosByUsuario(
 
     if (error) throw error
 
+    const processedData =
+      data?.map((favorito) => {
+        const resenas = favorito.destinos.resenas ?? []
+        const calificacionPromedio =
+          resenas.length > 0
+            ? resenas.reduce(
+                (sum: number, resena: { calificacion: number }) =>
+                  sum + (resena.calificacion || 0),
+                0,
+              ) / resenas.length
+            : 0
+
+        return {
+          ...favorito,
+          destinos: {
+            ...favorito.destinos,
+            imagen: favorito.destinos.imagenes_destino?.[0] ?? null,
+            calificacion: Math.round(calificacionPromedio * 10) / 10, // Redondear a 1 decimal
+            imagenes_destino: undefined,
+            resenas: undefined,
+          },
+        }
+      }) || []
+
     const totalCount = count ?? 0
     const totalPages = Math.ceil(totalCount / limit)
 
@@ -171,7 +170,7 @@ export async function getFavoritosByUsuario(
     return {
       success: true,
       data: {
-        data: data as Favorito[],
+        data: processedData as Favorito[],
         pagination,
       },
     }
@@ -254,39 +253,60 @@ export async function getFavoritosBySalto(
 }
 
 export async function createFavorito(
-  favorito: Omit<
-    Favorito,
-    'id_favorito' | 'fecha_actualizacion' | 'fecha_registro'
-  >,
+  favorito: Omit<Favorito, 'fecha_actualizacion' | 'fecha_registro'>,
 ): Promise<ApiResponse<Favorito>> {
   try {
     const supabase = await createSupabaseClient()
 
-    const { data: existingFavorito } = await supabase
+    const { data: existingFavorito, error: searchError } = await supabase
       .from('favoritos')
-      .select('id_favorito')
+      .select('estatus')
       .eq('id_usuario', favorito.id_usuario)
       .eq('id_destino', favorito.id_destino)
-      .eq('estatus', true)
       .single()
 
+    if (searchError && searchError.code !== 'PGRST116') {
+      throw searchError
+    }
+
     if (existingFavorito) {
-      return {
-        success: false,
-        error: 'Este salto ya está en tus favoritos',
+      if (existingFavorito.estatus === true) {
+        return {
+          success: false,
+          error: 'Este salto ya está en tus favoritos',
+        }
+      } else {
+        const { data: reactivatedData, error: updateError } = await supabase
+          .from('favoritos')
+          .update({
+            estatus: true,
+            fecha_actualizacion: new Date().toISOString(),
+          })
+          .eq('id_usuario', favorito.id_usuario)
+          .eq('id_destino', favorito.id_destino)
+          .select('*')
+          .single()
+
+        if (updateError) throw updateError
+
+        return {
+          success: true,
+          data: reactivatedData as Favorito,
+          message: 'Salto reactivado en favoritos exitosamente',
+        }
       }
     }
 
     const { data, error } = await supabase
       .from('favoritos')
-      .insert([{ ...favorito }])
-      .select(
-        `
-        *,
-        usuarios!inner(nombre, foto_perfil),
-        destinos!inner(nombre, ubicacion, descripcion)
-      `,
-      )
+      .insert([
+        {
+          ...favorito,
+          fecha_registro: new Date().toISOString(),
+          fecha_actualizacion: new Date().toISOString(),
+        },
+      ])
+      .select('*')
       .single()
 
     if (error) throw error
@@ -308,68 +328,56 @@ export async function createFavorito(
   }
 }
 
-export async function deleteFavorito(id: number): Promise<ApiResponse<null>> {
+export async function deleteFavorito(params: {
+  id_usuario: number
+  id_destino: number
+}): Promise<ApiResponse<null>> {
   try {
     const supabase = await createSupabaseClient()
 
-    const { error } = await supabase
+    const { data: existingFavorito, error: searchError } = await supabase
       .from('favoritos')
-      .update({
-        estatus: false,
-      })
-      .eq('id_favorito', id)
-
-    if (error) throw error
-
-    return {
-      success: true,
-      message: 'Favorito eliminado exitosamente',
-    }
-  } catch (error) {
-    console.error(`Error al eliminar favorito con ID ${id}:`, error)
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : `Error desconocido al eliminar favorito con ID ${id}`,
-    }
-  }
-}
-
-export async function deleteFavoritoByUsuarioYSalto(
-  usuarioId: number,
-  saltoId: number,
-): Promise<ApiResponse<null>> {
-  try {
-    const supabase = await createSupabaseClient()
-
-    const { error } = await supabase
-      .from('favoritos')
-      .update({
-        estatus: false,
-      })
-      .eq('id_usuario', usuarioId)
-      .eq('id_destino', saltoId)
+      .select('id_usuario, id_destino')
+      .eq('id_usuario', params.id_usuario)
+      .eq('id_destino', params.id_destino)
       .eq('estatus', true)
+      .single()
 
-    if (error) throw error
+    if (searchError && searchError.code !== 'PGRST116') {
+      throw searchError
+    }
+
+    if (!existingFavorito) {
+      return {
+        success: false,
+        error: 'Favorito no encontrado',
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('favoritos')
+      .update({
+        estatus: false,
+        fecha_actualizacion: new Date().toISOString(),
+      })
+      .eq('id_usuario', existingFavorito.id_usuario)
+      .eq('id_destino', existingFavorito.id_destino)
+
+    if (updateError) throw updateError
 
     return {
       success: true,
+      data: null,
       message: 'Favorito eliminado exitosamente',
     }
   } catch (error) {
-    console.error(
-      `Error al eliminar favorito del usuario ${usuarioId} y salto ${saltoId}:`,
-      error,
-    )
+    console.error('Error al eliminar favorito:', error)
     return {
       success: false,
       error:
         error instanceof Error
           ? error.message
-          : `Error desconocido al eliminar favorito del usuario ${usuarioId} y salto ${saltoId}`,
+          : 'Error desconocido al eliminar favorito',
     }
   }
 }
@@ -377,12 +385,12 @@ export async function deleteFavoritoByUsuarioYSalto(
 export async function checkIfFavorito(
   usuarioId: number,
   saltoId: number,
-): Promise<ApiResponse<{ esFavorito: boolean; favoritoId?: number }>> {
+): Promise<ApiResponse<{ isFavorite: boolean; saltoId?: number }>> {
   try {
     const supabase = await createSupabaseClient()
     const { data, error } = await supabase
       .from('favoritos')
-      .select('id_favorito')
+      .select('id_usuario, id_destino')
       .eq('id_usuario', usuarioId)
       .eq('id_destino', saltoId)
       .eq('estatus', true)
@@ -395,8 +403,8 @@ export async function checkIfFavorito(
     return {
       success: true,
       data: {
-        esFavorito: !!data,
-        favoritoId: data?.id_favorito,
+        isFavorite: !!data,
+        saltoId: data?.id_destino,
       },
     }
   } catch (error) {
@@ -410,37 +418,6 @@ export async function checkIfFavorito(
         error instanceof Error
           ? error.message
           : `Error desconocido al verificar favorito del usuario ${usuarioId} y salto ${saltoId}`,
-    }
-  }
-}
-
-export async function getContadorFavoritosSalto(
-  saltoId: number,
-): Promise<ApiResponse<{ totalFavoritos: number }>> {
-  try {
-    const supabase = await createSupabaseClient()
-    const { count, error } = await supabase
-      .from('favoritos')
-      .select('*', { count: 'exact', head: true })
-      .eq('id_destino', saltoId)
-      .eq('estatus', true)
-
-    if (error) throw error
-
-    return {
-      success: true,
-      data: {
-        totalFavoritos: count ?? 0,
-      },
-    }
-  } catch (error) {
-    console.error(`Error al contar favoritos del salto ${saltoId}:`, error)
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : `Error desconocido al contar favoritos del salto ${saltoId}`,
     }
   }
 }

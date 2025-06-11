@@ -77,6 +77,39 @@ export async function getAllDestinoWithImagenes(): Promise<
   }
 }
 
+export async function getImagenByDestinoId(
+  id_destino: number,
+): Promise<ApiResponse<ImagenDestino>> {
+  try {
+    const supabase = await createSupabaseClient()
+    const { data, error } = await supabase
+      .from('imagenes_destino')
+      .select('*')
+      .eq('id_destino', id_destino)
+      .eq('estatus', true)
+      .limit(1)
+
+    if (error) throw error
+
+    return {
+      success: true,
+      data: data[0] as ImagenDestino,
+    }
+  } catch (error) {
+    console.error(
+      `Error al obtener imágenes del destino con ID ${id_destino}:`,
+      error,
+    )
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : `Error desconocido al obtener imágenes del destino con ID ${id_destino}`,
+    }
+  }
+}
+
 export async function getImagenesByDestinoId(
   id_destino: number,
 ): Promise<ApiResponse<ImagenDestino[]>> {

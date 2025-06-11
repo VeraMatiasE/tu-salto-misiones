@@ -191,7 +191,7 @@ export function ImagenUpload({ saltoId, initialImages }: ImagenUploadProps) {
     setPreviewUrls((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  const handleDeleteImage = async (imageId: string, imageUrl: string) => {
+  const handleDeleteImage = async (imageId: number, imageUrl: string) => {
     try {
       setDeletingImages((prev) => new Set([...prev, imageId]))
 
