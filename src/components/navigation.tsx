@@ -298,7 +298,7 @@ function AuthButtons({
       <>
         <Link
           href="/log-in"
-          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md text-black hover:bg-header-primary/10 transition-colors font-medium"
+          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md hover:bg-header-primary/10 transition-colors font-medium"
           onClick={onLinkClick}
         >
           <Button variant={'sidebar'}>
@@ -308,7 +308,7 @@ function AuthButtons({
         </Link>
         <Link
           href="/sign-up"
-          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md text-black hover:bg-header-primary/10 transition-colors font-medium"
+          className="text-primary flex items-center gap-3 px-4 py-3 rounded-md hover:bg-header-primary/10 transition-colors font-medium"
           onClick={onLinkClick}
         >
           <Button variant={'sidebar'}>
@@ -323,25 +323,14 @@ function AuthButtons({
   return (
     <div className="flex items-center space-x-3">
       <Link href="/log-in">
-        <Button
-          variant={variant === 'back' ? 'outline' : 'default'}
-          className={
-            variant === 'back'
-              ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700 transition-colors'
-              : 'bg-header-primary'
-          }
-        >
+        <Button variant="default" className="bg-header-primary">
           Iniciar Sesión
         </Button>
       </Link>
       <Link href="/sign-up">
         <Button
           variant="outline"
-          className={
-            variant === 'back'
-              ? 'border-white text-white hover:bg-white hover:text-teal-600 transition-colors'
-              : 'bg-header text-header-primary border-header-primary'
-          }
+          className="bg-header text-header-primary border-header-primary"
         >
           Registrarse
         </Button>
@@ -510,8 +499,19 @@ export default function Navigation({
   if (loading) {
     return (
       <nav className="bg-header px-4 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+        <div className="max-w-7xl mx-auto flex space-x-2 justify-center">
+          <div
+            className="h-2 w-2 bg-gray-900 rounded-full animate-bounce"
+            style={{ animationDelay: '0ms' }}
+          ></div>
+          <div
+            className="h-2 w-2 bg-gray-900 rounded-full animate-bounce"
+            style={{ animationDelay: '150ms' }}
+          ></div>
+          <div
+            className="h-2 w-2 bg-gray-900 rounded-full animate-bounce"
+            style={{ animationDelay: '300ms' }}
+          ></div>
         </div>
       </nav>
     )
