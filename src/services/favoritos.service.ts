@@ -99,7 +99,18 @@ export async function getFavoritosByUsuario(
       .select(
         `
         *,
-        destinos!inner(nombre, ubicacion)
+        destinos!inner(
+          nombre, 
+          ubicacion,
+          dificultad, 
+          imagenes_destino(
+            public_id,
+            url_imagen
+          ),
+          resenas(
+            calificacion
+          )
+        )
       `,
         { count: 'exact' },
       )
@@ -120,6 +131,30 @@ export async function getFavoritosByUsuario(
 
     if (error) throw error
 
+    const processedData =
+      data?.map((favorito) => {
+        const resenas = favorito.destinos.resenas || []
+        const calificacionPromedio =
+          resenas.length > 0
+            ? resenas.reduce(
+                (sum: number, resena: { calificacion: number }) =>
+                  sum + (resena.calificacion || 0),
+                0,
+              ) / resenas.length
+            : 0
+
+        return {
+          ...favorito,
+          destinos: {
+            ...favorito.destinos,
+            imagen: favorito.destinos.imagenes_destino?.[0] || null,
+            calificacion: Math.round(calificacionPromedio * 10) / 10, // Redondear a 1 decimal
+            imagenes_destino: undefined,
+            resenas: undefined,
+          },
+        }
+      }) || []
+
     const totalCount = count ?? 0
     const totalPages = Math.ceil(totalCount / limit)
 
@@ -135,7 +170,7 @@ export async function getFavoritosByUsuario(
     return {
       success: true,
       data: {
-        data: data as Favorito[],
+        data: processedData as Favorito[],
         pagination,
       },
     }
