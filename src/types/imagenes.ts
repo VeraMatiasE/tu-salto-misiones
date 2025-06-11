@@ -1,5 +1,5 @@
 export type Imagen = {
-  id_imagen: string
+  id_imagen: number
   url_imagen: string
   fecha_actualizacion: string
   public_id: string
