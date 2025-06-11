@@ -65,6 +65,7 @@ interface SignUpResponse {
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState<SignUpFormData>({
     username: '',
     email: '',
@@ -140,10 +141,10 @@ export default function SignUpPage() {
 
     startTransition(async () => {
       const form = new FormData()
-      form.append('nombre', formData.username)
+      form.append('username', formData.username)
       form.append('email', formData.email)
       form.append('password', formData.password)
-      form.append('repeatPassword', formData.password)
+      form.append('repeatPassword', formData.confirmPassword)
 
       const result = (await signUp(form)) as SignUpResponse
 
@@ -276,9 +277,9 @@ export default function SignUpPage() {
                   }
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4 cursor-pointer" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 cursor-pointer" />
                   )}
                 </button>
               </div>
@@ -294,7 +295,7 @@ export default function SignUpPage() {
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange('confirmPassword')}
@@ -306,14 +307,16 @@ export default function SignUpPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   aria-label={
-                    showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    showConfirmPassword
+                      ? 'Ocultar contraseña'
+                      : 'Mostrar contraseña'
                   }
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 cursor-pointer" />
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
