@@ -3,7 +3,6 @@ export type Usuario = {
   uid_usuario: string | null
   nombre: string
   email: string
-  contrasena: string
   foto_perfil: string | null
   intereses: string | null
   rol: boolean

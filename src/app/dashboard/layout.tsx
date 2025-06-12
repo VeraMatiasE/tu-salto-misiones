@@ -1,0 +1,17 @@
+import type React from 'react'
+import { DashboardSidebar } from '@/components/admin-sidebar'
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <div className="flex min-h-screen bg-background">
+      <DashboardSidebar />
+      <div className="flex-1 overflow-auto">
+        <main className="w-full">{children}</main>
+      </div>
+    </div>
+  )
+}
