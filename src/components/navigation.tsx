@@ -394,13 +394,14 @@ function MobileMenu({
       ref={dialogRef}
       onClose={handleClose}
       onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') handleClose()
+      }}
       aria-label="Menú de navegación"
-      className="p-0 m-0 w-screen h-screen max-w-none max-h-none bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+      tabIndex={-1}
+      className="p-0 m-0 w-screen h-screen max-w-none max-h-none bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm pointer-events-auto"
     >
-      <div
-        className="fixed right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="fixed right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300 pointer-events-auto">
         <div className="flex flex-col h-full">
           {/* Header del menú */}
           <div className="flex justify-between items-center p-4 border-b border-header-primary">
