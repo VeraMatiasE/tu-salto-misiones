@@ -99,6 +99,39 @@ const convertToFormErrors = (
   return formErrors
 }
 
+const getAvatarContent = (previewImageUrl, originalImageUrl, formData) => {
+  if (previewImageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={previewImageUrl}
+        alt="Preview"
+        className="w-full h-full object-cover rounded-full"
+      />
+    )
+  }
+
+  if (originalImageUrl) {
+    return (
+      <AvatarImage
+        src={formData.foto_perfil}
+        alt={formData.nombre ?? 'Foto de perfil'}
+      />
+    )
+  }
+
+  return (
+    <AvatarFallback className="text-2xl bg-teal-500 text-white">
+      {formData.nombre
+        ? formData.nombre
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+        : 'U'}
+    </AvatarFallback>
+  )
+}
+
 export default function EditarPerfilPage() {
   const router = useRouter()
   const [formData, setFormData] = useState<UserProfile | null>(null)
@@ -383,27 +416,10 @@ export default function EditarPerfilPage() {
     )
   }
 
-  const avatarContent = previewImageUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={previewImageUrl}
-      alt="Preview"
-      className="w-full h-full object-cover rounded-full"
-    />
-  ) : originalImageUrl ? (
-    <AvatarImage
-      src={formData.foto_perfil}
-      alt={formData.nombre ?? 'Foto de perfil'}
-    />
-  ) : (
-    <AvatarFallback className="text-2xl bg-teal-500 text-white">
-      {formData.nombre
-        ? formData.nombre
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-        : 'U'}
-    </AvatarFallback>
+  const avatarContent = getAvatarContent(
+    previewImageUrl,
+    originalImageUrl,
+    formData,
   )
 
   return (

@@ -168,13 +168,14 @@ const InfraestructuraCheckbox = ({
         <FormControl>
           <Checkbox
             checked={field.value?.includes(item.id)}
-            onCheckedChange={(checked) =>
-              handleInfraestructuraChange(
-                checked === 'indeterminate' ? false : checked,
-                item.id,
-                field,
-              )
-            }
+            onCheckedChange={(checked) => {
+              const isChecked = checked === 'indeterminate' ? false : checked
+              if (isChecked) {
+                handleAddInfraestructura(item.id, field)
+              } else {
+                handleRemoveInfraestructura(item.id, field)
+              }
+            }}
           />
         </FormControl>
         <FormLabel className="font-normal cursor-pointer">
@@ -199,16 +200,18 @@ const removeItem = (
   field.onChange(field.value?.filter((value: string) => value !== itemId))
 }
 
-const handleInfraestructuraChange = (
-  checked: boolean,
+const handleAddInfraestructura = (
   itemId: string,
   field: ControllerRenderProps<FormValues, 'infraestructura'>,
 ) => {
-  if (checked) {
-    addItem(itemId, field)
-  } else {
-    removeItem(itemId, field)
-  }
+  addItem(itemId, field)
+}
+
+const handleRemoveInfraestructura = (
+  itemId: string,
+  field: ControllerRenderProps<FormValues, 'infraestructura'>,
+) => {
+  removeItem(itemId, field)
 }
 
 // Componente para el campo de nombre

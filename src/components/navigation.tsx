@@ -406,8 +406,14 @@ function MobileMenu({
     >
       <div
         className="fixed right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300"
+        role="button"
+        tabIndex={0}
         onClick={(e) => e.stopPropagation()}
-        role="presentation"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.stopPropagation()
+          }
+        }}
       >
         <div className="flex flex-col h-full">
           {/* Header del menú */}
