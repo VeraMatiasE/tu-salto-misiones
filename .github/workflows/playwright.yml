@@ -1,12 +1,11 @@
 name: Playwright Tests
 on:
-  push:
-  pull_request:
-    branches: [ prod, dev ]
+  deployment_status:
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    if: github.event.deployment_status.state == 'success'
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -14,13 +13,9 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: npm ci
-    - name: Install Playwright Browsers
+    - name: Install Playwright
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      env:
+        PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
