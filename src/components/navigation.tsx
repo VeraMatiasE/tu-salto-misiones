@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -157,6 +157,22 @@ const MobileNavLink = ({ item, isActive, onClick }: NavLinkProps) => {
   )
 }
 
+const DesktopNavLink = ({ item, isActive }: NavLinkProps) => {
+  const baseLinkClass =
+    'relative h-full flex items-center px-4 text-gray-700 hover:text-header-primary font-medium transition-all duration-300 group'
+  const activeLinkClass = 'text-header-primary font-semibold'
+
+  return (
+    <Link
+      href={item.href}
+      className={`${baseLinkClass} ${isActive ? activeLinkClass : ''}`}
+    >
+      {item.label}
+      <span className="absolute bottom-0 left-1/2 w-0 h-[3px] bg-header-primary transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+    </Link>
+  )
+}
+
 function NavigationLinks({
   isAuthenticated,
   currentPage,
@@ -208,22 +224,6 @@ function NavigationLinks({
   }
 
   const visibleItems = getVisibleItems()
-
-  const DesktopNavLink = ({ item, isActive }: NavLinkProps) => {
-    const baseLinkClass =
-      'relative h-full flex items-center px-4 text-gray-700 hover:text-header-primary font-medium transition-all duration-300 group'
-    const activeLinkClass = 'text-header-primary font-semibold'
-
-    return (
-      <Link
-        href={item.href}
-        className={`${baseLinkClass} ${isActive ? activeLinkClass : ''}`}
-      >
-        {item.label}
-        <span className="absolute bottom-0 left-1/2 w-0 h-[3px] bg-header-primary transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
-      </Link>
-    )
-  }
 
   return (
     <>
@@ -354,39 +354,54 @@ function MobileMenu({
   isAuthenticated,
   userProfile,
 }: MobileMenuProps) {
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose()
-      }
-    },
-    [onClose],
-  )
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose()
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (isOpen) {
+      dialog.showModal()
+    } else {
+      dialog.close()
+    }
+  }, [isOpen])
+
+  const handleClose = () => {
+    onClose()
+  }
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    const rect = dialog.getBoundingClientRect()
+    const isInDialog =
+      e.clientX >= rect.left
+      && e.clientX <= rect.right
+      && e.clientY >= rect.top
+      && e.clientY <= rect.bottom
+
+    if (!isInDialog) {
+      handleClose()
     }
   }
 
   if (!isOpen) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-      tabIndex={-1}
+    <dialog
+      ref={dialogRef}
+      onClose={handleClose}
       onClick={handleBackdropClick}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') handleKeyDown(e)
+        if (e.key === 'Escape') handleClose()
       }}
-      role="dialog"
-      aria-modal="true"
       aria-label="Menú de navegación"
+      tabIndex={-1}
+      className="p-0 m-0 w-screen h-screen max-w-none max-h-none bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm pointer-events-auto"
     >
-      <div
-        className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300"
-        aria-labelledby="menu-header"
-      >
+      <div className="fixed right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300 pointer-events-auto">
         <div className="flex flex-col h-full">
           {/* Header del menú */}
           <div className="flex justify-between items-center p-4 border-b border-header-primary">
@@ -394,7 +409,7 @@ function MobileMenu({
             <Button
               variant="ghost"
               size="icon"
-              onClick={onClose}
+              onClick={handleClose}
               className="hover:bg-header-primary/10 text-header-primary"
               aria-label="Cerrar menú"
             >
@@ -407,7 +422,7 @@ function MobileMenu({
             <NavigationLinks
               isAuthenticated={isAuthenticated}
               currentPage={currentPage}
-              onLinkClick={onClose}
+              onLinkClick={handleClose}
               isMobile={true}
               rol={userProfile?.profile?.rol}
             />
@@ -417,7 +432,7 @@ function MobileMenu({
                 <AuthButtons
                   isAuthenticated={isAuthenticated}
                   userProfile={userProfile}
-                  onLinkClick={onClose}
+                  onLinkClick={handleClose}
                   isMobile={true}
                 />
               </div>
@@ -430,7 +445,7 @@ function MobileMenu({
               <div className="flex items-center justify-between">
                 <Link
                   href="/profile"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="block hover:bg-header-primary/5 rounded-lg p-2 transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -465,7 +480,7 @@ function MobileMenu({
           )}
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }
 

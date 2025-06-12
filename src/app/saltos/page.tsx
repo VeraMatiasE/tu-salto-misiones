@@ -784,7 +784,7 @@ function SaltosPage() {
                   </PaginationItem>
 
                   {generatePaginationItems().map((item, index) => (
-                    <PaginationItem key={index}>
+                    <PaginationItem key={`pag-${item}-${index}`}>
                       {item === 'ellipsis-start' || item === 'ellipsis-end' ? (
                         <PaginationEllipsis />
                       ) : (

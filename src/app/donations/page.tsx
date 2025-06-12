@@ -16,7 +16,55 @@ import { Badge } from '@/components/ui/badge'
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
 
-const datosBancarios = {
+interface CopyButtonProps {
+  text: string
+  field: string
+  label: string
+  copiedField: string | null
+  onCopy: (text: string, field: string) => void
+}
+
+const CopyButton = ({
+  text,
+  field,
+  label,
+  copiedField,
+  onCopy,
+}: CopyButtonProps) => (
+  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+    <div>
+      <p className="text-sm text-gray-600 mb-1">{label}</p>
+      <p className="font-mono text-lg font-semibold text-gray-900">{text}</p>
+    </div>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => onCopy(text, field)}
+      className="ml-4 flex items-center gap-2"
+    >
+      {copiedField === field ? (
+        <>
+          <Check className="h-4 w-4 text-green-600" />
+          <span className="text-green-600">Copiado</span>
+        </>
+      ) : (
+        <>
+          <Copy className="h-4 w-4" />
+          <span>Copiar</span>
+        </>
+      )}
+    </Button>
+  </div>
+)
+
+interface DatosBancarios {
+  titular: string
+  cvu: string
+  alias: string
+  cuit: string
+}
+
+const datosBancarios: DatosBancarios = {
   titular: 'Tu Salto Misiones',
   cvu: '0000003100010000000001',
   alias: 'saltos.misiones.mp',
@@ -35,42 +83,6 @@ export default function DonacionesPage() {
       console.error('Error al copiar:', err)
     }
   }
-
-  const CopyButton = ({
-    text,
-    field,
-    label,
-  }: {
-    text: string
-    field: string
-    label: string
-  }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-      <div>
-        <p className="text-sm text-gray-600 mb-1">{label}</p>
-        <p className="font-mono text-lg font-semibold text-gray-900">{text}</p>
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => copyToClipboard(text, field)}
-        className="ml-4 flex items-center gap-2"
-      >
-        {copiedField === field ? (
-          <>
-            <Check className="h-4 w-4 text-green-600" />
-            <span className="text-green-600">Copiado</span>
-          </>
-        ) : (
-          <>
-            <Copy className="h-4 w-4" />
-            <span>Copiar</span>
-          </>
-        )}
-      </Button>
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
       <Navigation currentPage={'inicio'} />
@@ -110,17 +122,29 @@ export default function DonacionesPage() {
                   text={datosBancarios.titular}
                   field="titular"
                   label="Titular de la cuenta"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
                 />
-                <CopyButton text={datosBancarios.cvu} field="cvu" label="CVU" />
+                <CopyButton
+                  text={datosBancarios.cvu}
+                  field="cvu"
+                  label="CVU"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
+                />
                 <CopyButton
                   text={datosBancarios.alias}
                   field="alias"
                   label="Alias"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
                 />
                 <CopyButton
                   text={datosBancarios.cuit}
                   field="cuit"
                   label="CUIT"
+                  copiedField={copiedField}
+                  onCopy={copyToClipboard}
                 />
 
                 <div className="mt-6 p-4 bg-teal-50 rounded-lg border border-teal-200">

@@ -103,7 +103,7 @@ export default function AcercaPage() {
             {valores.map((valor, index) => {
               const IconComponent = valor.icono
               return (
-                <Card key={index}>
+                <Card key={`${valor.titulo}-${index}`}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       <div className="p-3 bg-teal-100 rounded-lg">

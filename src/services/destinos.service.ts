@@ -105,8 +105,8 @@ export async function getDestinos(
           data: [],
           pagination: {
             total: 0,
-            currentPage: filters?.page || 1,
-            limit: filters?.limit || 100,
+            currentPage: filters?.page ?? 1,
+            limit: filters?.limit ?? 100,
             totalPages: 1,
             hasNextPage: false,
             hasPrevPage: false,

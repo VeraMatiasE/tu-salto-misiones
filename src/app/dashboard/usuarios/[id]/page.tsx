@@ -6,9 +6,9 @@ import { use, useEffect, useState } from 'react'
 
 export default function EditarUsuarioPage({
   params,
-}: {
-  params: Readonly<Promise<{ id: string }>>
-}) {
+}: Readonly<{
+  params: Promise<{ id: string }>
+}>) {
   const resolvedParams = use(params)
   const [usuarioData, setUsuarioData] = useState<Usuario | null>(null)
   const [loading, setLoading] = useState(true)

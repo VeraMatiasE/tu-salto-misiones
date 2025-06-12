@@ -5,9 +5,9 @@ import { Salto } from '@/types/salto'
 
 export default function EditarSaltoPage({
   params,
-}: {
-  params: Readonly<Promise<{ id: string }>>
-}) {
+}: Readonly<{
+  params: Promise<{ id: string }>
+}>) {
   const resolvedParams = use(params)
   const [saltoData, setSaltoData] = useState<Salto | null>(null)
   const [loading, setLoading] = useState(true)
