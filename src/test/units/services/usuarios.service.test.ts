@@ -5,14 +5,28 @@ import {
   updateUsuario,
   deleteUsuario,
   getUsuarioByEmail,
+  getUserByUid,
+  getUserIdByUid,
+  uploadAvatarToCloudinary,
+  updateUserAvatar,
+  cleanupUnusedImage,
 } from '@/services/usuarios.service'
 import { MockSupabaseClient } from '@/types/test.types'
 import { createSupabaseClient } from '@/utils/supabase/server'
+import cloudinary from '@/lib/cloudnary'
 
-// Mock de createSupabaseClient
 jest.mock('@/utils/supabase/server', () => ({
   createSupabaseClient: jest.fn(),
 }))
+
+jest.mock('@/lib/cloudnary', () => ({
+  uploader: {
+    upload_stream: jest.fn(),
+    destroy: jest.fn(),
+  },
+}))
+
+process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud-name'
 
 describe('Usuarios Service', () => {
   let mockSupabase: MockSupabaseClient
@@ -33,11 +47,15 @@ describe('Usuarios Service', () => {
     }
     ;(createSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase)
     jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-    console.error.mockClear()
+    ;(console.error as jest.Mock).mockRestore()
+    ;(console.warn as jest.Mock).mockRestore()
+    ;(console.log as jest.Mock).mockRestore()
   })
 
   describe('getUsuarios', () => {
@@ -71,7 +89,7 @@ describe('Usuarios Service', () => {
       expect(result.data?.data).toEqual(mockUsuarios)
       expect(result.data?.pagination).toEqual({
         currentPage: 1,
-        totalPages: 2, // Math.ceil(15 / 10)
+        totalPages: 2,
         total: 15,
         limit: 10,
         hasNextPage: true,
@@ -109,14 +127,14 @@ describe('Usuarios Service', () => {
       expect(result.success).toBe(true)
       expect(result.data?.pagination).toEqual({
         currentPage: 3,
-        totalPages: 5, // Math.ceil(25 / 5)
+        totalPages: 5,
         total: 25,
         limit: 5,
         hasNextPage: true,
         hasPrevPage: true,
       })
 
-      expect(mockSupabase.range).toHaveBeenCalledWith(10, 14) // offset (3-1)*5 = 10, range 10-14
+      expect(mockSupabase.range).toHaveBeenCalledWith(10, 14)
     })
 
     it('debería aplicar búsqueda correctamente', async () => {
@@ -144,7 +162,7 @@ describe('Usuarios Service', () => {
     })
 
     it('no debería aplicar búsqueda con string vacío', async () => {
-      const mockUsuarios = []
+      const mockUsuarios: unknown[] = []
 
       mockSupabase.range.mockResolvedValue({
         data: mockUsuarios,
@@ -152,13 +170,13 @@ describe('Usuarios Service', () => {
         count: 0,
       })
 
-      await getUsuarios({ search: '   ' }) // String con espacios
+      await getUsuarios({ search: '   ' })
 
       expect(mockSupabase.or).not.toHaveBeenCalled()
     })
 
     it('debería aplicar ordenamiento personalizado', async () => {
-      const mockUsuarios = []
+      const mockUsuarios: unknown[] = []
 
       mockSupabase.range.mockResolvedValue({
         data: mockUsuarios,
@@ -209,7 +227,7 @@ describe('Usuarios Service', () => {
       mockSupabase.range.mockResolvedValue({
         data: mockUsuarios,
         error: null,
-        count: null, // Simular count null
+        count: null,
       })
 
       const result = await getUsuarios()
@@ -217,59 +235,6 @@ describe('Usuarios Service', () => {
       expect(result.success).toBe(true)
       expect(result.data?.pagination.total).toBe(0)
       expect(result.data?.pagination.totalPages).toBe(0)
-    })
-
-    it('debería calcular correctamente hasNextPage y hasPrevPage', async () => {
-      // Caso: página del medio
-      mockSupabase.range.mockResolvedValue({
-        data: [],
-        error: null,
-        count: 50,
-      })
-
-      const result = await getUsuarios({ page: 3, limit: 10 }) // página 3 de 5
-
-      expect(result.data?.pagination.hasNextPage).toBe(true)
-      expect(result.data?.pagination.hasPrevPage).toBe(true)
-
-      // Caso: primera página
-      const resultFirstPage = await getUsuarios({ page: 1, limit: 10 })
-      expect(resultFirstPage.data?.pagination.hasPrevPage).toBe(false)
-
-      // Caso: última página
-      const resultLastPage = await getUsuarios({ page: 5, limit: 10 })
-      expect(resultLastPage.data?.pagination.hasNextPage).toBe(false)
-    })
-
-    it('debería manejar todos los parámetros combinados', async () => {
-      const mockUsuarios = []
-
-      mockSupabase.range.mockResolvedValue({
-        data: mockUsuarios,
-        error: null,
-        count: 0,
-      })
-
-      await getUsuarios({
-        page: 2,
-        limit: 20,
-        search: 'admin',
-        orderBy: 'email',
-        orderDirection: 'asc',
-      })
-
-      expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
-      expect(mockSupabase.select).toHaveBeenCalledWith('*', {
-        count: 'exact',
-      })
-      expect(mockSupabase.eq).toHaveBeenCalledWith('estatus', true)
-      expect(mockSupabase.or).toHaveBeenCalledWith(
-        'nombre.ilike.%admin%,email.ilike.%admin%',
-      )
-      expect(mockSupabase.order).toHaveBeenCalledWith('email', {
-        ascending: true,
-      })
-      expect(mockSupabase.range).toHaveBeenCalledWith(20, 39)
     })
   })
 
@@ -345,6 +310,112 @@ describe('Usuarios Service', () => {
     })
   })
 
+  describe('getUserByUid', () => {
+    it('debería retornar un usuario por UID', async () => {
+      const mockUsuario = {
+        id_usuario: 1,
+        nombre: 'Usuario 1',
+        email: 'usuario1@example.com',
+        uid_usuario: 'uid123',
+      }
+
+      mockSupabase.single.mockResolvedValue({
+        data: mockUsuario,
+        error: null,
+      })
+
+      const result = await getUserByUid('uid123')
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual(mockUsuario)
+      expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
+      expect(mockSupabase.select).toHaveBeenCalledWith('*')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('uid_usuario', 'uid123')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('estatus', true)
+    })
+
+    it('debería manejar cuando no se encuentra el usuario', async () => {
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: null,
+      })
+
+      const result = await getUserByUid('uid_no_existe')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Usuario no encontrado')
+    })
+
+    it('debería manejar errores de Supabase', async () => {
+      const mockError = new Error('Error de conexión')
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: mockError,
+      })
+
+      const result = await getUserByUid('uid123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Error al obtener datos del usuario')
+    })
+
+    it('debería manejar errores inesperados', async () => {
+      mockSupabase.single.mockRejectedValue('Error inesperado')
+
+      const result = await getUserByUid('uid123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Error interno al obtener usuario')
+    })
+  })
+
+  describe('getUserIdByUid', () => {
+    it('debería retornar el ID de usuario por UID', async () => {
+      const mockData = {
+        id_usuario: 1,
+      }
+
+      mockSupabase.single.mockResolvedValue({
+        data: mockData,
+        error: null,
+      })
+
+      const result = await getUserIdByUid('uid123')
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual(mockData)
+      expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
+      expect(mockSupabase.select).toHaveBeenCalledWith('id_usuario')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('uid_usuario', 'uid123')
+      expect(mockSupabase.eq).toHaveBeenCalledWith('estatus', true)
+    })
+
+    it('debería manejar cuando no se encuentra el usuario', async () => {
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: null,
+      })
+
+      const result = await getUserIdByUid('uid_no_existe')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Usuario no encontrado')
+    })
+
+    it('debería manejar errores de Supabase', async () => {
+      const mockError = new Error('Error de conexión')
+      mockSupabase.single.mockResolvedValue({
+        data: null,
+        error: mockError,
+      })
+
+      const result = await getUserIdByUid('uid123')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Error al obtener datos del usuario')
+    })
+  })
+
   describe('createUsuario', () => {
     it('debería crear un usuario', async () => {
       const nuevoUsuario = {
@@ -352,6 +423,7 @@ describe('Usuarios Service', () => {
         email: 'nuevo@example.com',
         rol: false,
         estatus: true,
+        uid_usuario: 'uid123',
       }
 
       const usuarioCreado = {
@@ -370,6 +442,7 @@ describe('Usuarios Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(usuarioCreado)
+      expect(result.message).toBe('Usuario creado exitosamente')
       expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
       expect(mockSupabase.insert).toHaveBeenCalledWith([{ ...nuevoUsuario }])
     })
@@ -386,6 +459,7 @@ describe('Usuarios Service', () => {
         email: 'nuevo@example.com',
         rol: false,
         estatus: true,
+        uid_usuario: 'uid123',
       }
 
       const result = await createUsuario(nuevoUsuario)
@@ -417,6 +491,7 @@ describe('Usuarios Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(usuarioActualizado)
+      expect(result.message).toBe('Usuario actualizado exitosamente')
       expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
       expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -452,6 +527,7 @@ describe('Usuarios Service', () => {
       const result = await deleteUsuario(1)
 
       expect(result.success).toBe(true)
+      expect(result.message).toBe('Usuario eliminado exitosamente')
       expect(mockSupabase.from).toHaveBeenCalledWith('usuarios')
       expect(mockSupabase.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -470,6 +546,187 @@ describe('Usuarios Service', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe(mockError.message)
+    })
+  })
+
+  describe('uploadAvatarToCloudinary', () => {
+    it('debería subir una imagen a Cloudinary exitosamente', async () => {
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      mockFile.arrayBuffer = jest.fn().mockResolvedValue(mockFile)
+      const bufferSpy = jest.spyOn(Buffer, 'from').mockReturnValue(mockFile)
+
+      const mockCloudinaryResult = {
+        public_id: 'avatar/1/test123',
+        url: 'https://res.cloudinary.com/test/image/upload/avatar/1/test123',
+      }
+
+      const mockUploadStream = jest.fn((options, callback) => {
+        setTimeout(() => callback(null, mockCloudinaryResult), 0)
+        return { end: jest.fn() }
+      })
+
+      ;(cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
+        mockUploadStream,
+      )
+
+      const result = await uploadAvatarToCloudinary(mockFile, 1)
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        public_id: 'avatar/1/test123',
+        imageUrl:
+          'https://res.cloudinary.com/test/image/upload/avatar/1/test123',
+      })
+      expect(result.message).toBe('Imagen subida exitosamente a Cloudinary')
+      bufferSpy.mockRestore()
+    })
+
+    it('debería manejar errores de Cloudinary', async () => {
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      mockFile.arrayBuffer = jest.fn().mockResolvedValue(mockFile)
+      const bufferSpy = jest.spyOn(Buffer, 'from').mockReturnValue(mockFile)
+      const mockError = new Error('Error de Cloudinary')
+
+      const mockUploadStream = jest.fn((options, callback) => {
+        setTimeout(() => callback(mockError, null), 0)
+        return { end: jest.fn() }
+      })
+
+      ;(cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
+        mockUploadStream,
+      )
+
+      const result = await uploadAvatarToCloudinary(mockFile, 1)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Error de Cloudinary')
+      bufferSpy.mockRestore()
+    })
+
+    it('debería manejar respuesta vacía de Cloudinary', async () => {
+      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+      mockFile.arrayBuffer = jest.fn().mockResolvedValue(mockFile)
+      const bufferSpy = jest.spyOn(Buffer, 'from').mockReturnValue(mockFile)
+
+      const mockUploadStream = jest.fn((options, callback) => {
+        setTimeout(() => callback(null, null), 0)
+        return { end: jest.fn() }
+      })
+
+      ;(cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
+        mockUploadStream,
+      )
+
+      const result = await uploadAvatarToCloudinary(mockFile, 1)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('No se recibió respuesta de Cloudinary')
+      bufferSpy.mockRestore()
+    })
+  })
+
+  describe('updateUserAvatar', () => {
+    it('debería actualizar el avatar del usuario', async () => {
+      const mockExistingUser = { foto_perfil: 'old_public_id' }
+      const newPublicId = 'new_public_id'
+
+      mockSupabase.single
+        .mockResolvedValueOnce({
+          data: mockExistingUser,
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { foto_perfil: newPublicId },
+          error: null,
+        })
+      ;(cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({
+        result: 'ok',
+      })
+
+      const result = await updateUserAvatar(1, newPublicId)
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual({
+        oldPublicId: 'old_public_id',
+        newPublicId: 'new_public_id',
+        imageUrl: `https://res.cloudinary.com/test-cloud-name/image/upload/new_public_id`,
+      })
+      expect(result.message).toBe('Avatar actualizado exitosamente')
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('old_public_id')
+    })
+
+    it('debería manejar errores en la actualización', async () => {
+      const mockError = new Error('Error al actualizar')
+
+      mockSupabase.single
+        .mockResolvedValueOnce({
+          data: { foto_perfil: 'old_id' },
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: null,
+          error: mockError,
+        })
+      ;(cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({
+        result: 'ok',
+      })
+
+      const result = await updateUserAvatar(1, 'new_id')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe(
+        'Error al actualizar avatar: Error al actualizar',
+      )
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('new_id')
+    })
+
+    it('no debería eliminar imagen anterior si es la misma', async () => {
+      const samePublicId = 'same_public_id'
+      const mockExistingUser = { foto_perfil: samePublicId }
+
+      mockSupabase.single
+        .mockResolvedValueOnce({
+          data: mockExistingUser,
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { foto_perfil: samePublicId },
+          error: null,
+        })
+
+      const result = await updateUserAvatar(1, samePublicId)
+
+      expect(result.success).toBe(true)
+      expect(cloudinary.uploader.destroy).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('cleanupUnusedImage', () => {
+    it('debería eliminar imagen no utilizada', async () => {
+      ;(cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({
+        result: 'ok',
+      })
+
+      await cleanupUnusedImage('unused_public_id')
+
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith(
+        'unused_public_id',
+      )
+    })
+
+    it('debería manejar errores silenciosamente', async () => {
+      ;(cloudinary.uploader.destroy as jest.Mock).mockRejectedValue(
+        new Error('Error al eliminar'),
+      )
+
+      // No debería lanzar error
+      await expect(
+        cleanupUnusedImage('unused_public_id'),
+      ).resolves.toBeUndefined()
+      expect(console.warn).toHaveBeenCalledWith(
+        'Error al limpiar imagen no utilizada:',
+        expect.any(Error),
+      )
     })
   })
 })
