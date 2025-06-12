@@ -26,7 +26,7 @@ const passwordSchema = z
         message: 'Debe contener al menos una letra minúscula',
         path: ['password'],
       })
-      .refine((val) => /[0-9]/.test(val), {
+      .refine((val) => /\d/.test(val), {
         message: 'Debe contener al menos un número',
         path: ['password'],
       })
@@ -66,8 +66,8 @@ export default function CambiarPasswordPage() {
       const fieldErrors: FormErrors = {}
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof FormErrors
-        if (!fieldErrors[key]) fieldErrors[key] = []
-        fieldErrors[key]!.push(issue.message)
+        fieldErrors[key] ??= []
+        fieldErrors[key].push(issue.message)
       }
       setErrors(fieldErrors)
       return
@@ -88,7 +88,7 @@ export default function CambiarPasswordPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(
-          errorData.message || 'Error al actualizar la contraseña',
+          errorData.message ?? 'Error al actualizar la contraseña',
         )
       }
 
@@ -157,8 +157,8 @@ export default function CambiarPasswordPage() {
                 </div>
                 {errors.password && (
                   <ul className="text-sm text-red-600 mt-1 space-y-1">
-                    {errors.password.map((err, idx) => (
-                      <li key={idx}>{err}</li>
+                    {errors.password.map((err) => (
+                      <li key={`error-pass-${err}`}>{err}</li>
                     ))}
                   </ul>
                 )}
@@ -197,8 +197,8 @@ export default function CambiarPasswordPage() {
                 </div>
                 {errors.confirmPassword && (
                   <ul className="text-sm text-red-600 mt-1 space-y-1">
-                    {errors.confirmPassword.map((err, idx) => (
-                      <li key={idx}>{err}</li>
+                    {errors.confirmPassword.map((err) => (
+                      <li key={`error-confirm-${err}`}>{err}</li>
                     ))}
                   </ul>
                 )}

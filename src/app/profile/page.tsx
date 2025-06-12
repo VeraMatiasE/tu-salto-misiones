@@ -90,7 +90,7 @@ export default function PerfilPage() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
             <div className="text-lg text-red-600">
-              {error || 'Error al cargar el perfil'}
+              {error ?? 'Error al cargar el perfil'}
             </div>
           </div>
         </div>
