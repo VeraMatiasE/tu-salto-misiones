@@ -16,12 +16,7 @@ jobs:
     - name: Install Playwright
       run: npx playwright install --with-deps
       
-    - name: Show PLAYWRIGHT_TEST_BASE_URL
-      run: echo ${{ env.PLAYWRIGHT_TEST_BASE_URL }}
-      env:
-        PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
-      
     - name: Run Playwright tests
       run: npx playwright test
       env:
-        PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
+        PLAYWRIGHT_TEST_BASE_URL: https://tu-salto-misiones.vercel.app 
