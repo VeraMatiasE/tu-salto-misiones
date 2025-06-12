@@ -396,10 +396,18 @@ function MobileMenu({
       onClick={handleBackdropClick}
       aria-label="Menú de navegación"
       className="p-0 m-0 w-screen h-screen max-w-none max-h-none bg-transparent backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          handleClose()
+        }
+      }}
     >
       <div
         className="fixed right-0 top-0 h-full w-4/5 max-w-sm bg-header shadow-2xl rounded-l-xl animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
+        role="presentation"
       >
         <div className="flex flex-col h-full">
           {/* Header del menú */}

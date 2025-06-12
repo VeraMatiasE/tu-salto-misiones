@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  Control,
   ControllerRenderProps,
   FieldPath,
   useForm,
@@ -184,18 +185,291 @@ const InfraestructuraCheckbox = ({
   />
 )
 
-// Función helper para manejar cambios en infraestructura
+const addItem = (
+  itemId: string,
+  field: ControllerRenderProps<FormValues, 'infraestructura'>,
+) => {
+  field.onChange([...(field.value || []), itemId])
+}
+
+const removeItem = (
+  itemId: string,
+  field: ControllerRenderProps<FormValues, 'infraestructura'>,
+) => {
+  field.onChange(field.value?.filter((value: string) => value !== itemId))
+}
+
 const handleInfraestructuraChange = (
   checked: boolean,
   itemId: string,
   field: ControllerRenderProps<FormValues, 'infraestructura'>,
 ) => {
   if (checked) {
-    field.onChange([...(field.value || []), itemId])
+    addItem(itemId, field)
   } else {
-    field.onChange(field.value?.filter((value: string) => value !== itemId))
+    removeItem(itemId, field)
   }
 }
+
+// Componente para el campo de nombre
+const NombreField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="nombre"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Nombre del destino</FormLabel>
+        <FormControl>
+          <Input placeholder="Ej. Salto del Arcoiris" {...field} />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de ubicación
+const UbicacionField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="ubicacion"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Ubicación</FormLabel>
+        <FormControl>
+          <div className="relative">
+            <Input
+              aria-label="Ubicacion"
+              placeholder="Ej: Cataratas del Iguazú, Misiones"
+              {...field}
+            />
+            <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          </div>
+        </FormControl>
+        <FormDescription>Formato: latitud, longitud</FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de URL del mapa
+const UrlMapaField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="url_mapa"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Link a Google Maps</FormLabel>
+        <FormControl>
+          <Input placeholder="https://maps.google.com/?q=..." {...field} />
+        </FormControl>
+        <FormDescription>URL completa de Google Maps</FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de costo
+const CostoField = ({
+  control,
+  handleCostoChange,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+  handleCostoChange: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: ControllerRenderProps<FormValues, 'costo_entrada'>,
+  ) => void
+}) => (
+  <FormField
+    control={control}
+    name="costo_entrada"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Costo (ARS)</FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            placeholder="0"
+            {...field}
+            onChange={(e) => handleCostoChange(e, field)}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de descripción
+const DescripcionField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="descripcion"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Descripción del salto</FormLabel>
+        <FormControl>
+          <Textarea
+            placeholder="Describe las características del salto..."
+            className="min-h-[120px]"
+            {...field}
+          />
+        </FormControl>
+        <FormDescription>
+          Incluye altura, caudal, formación rocosa, pozas y características
+          distintivas del salto.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de dificultad
+const DificultadField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="dificultad"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Nivel de dificultad del acceso</FormLabel>
+        <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona el nivel de dificultad" />
+            </SelectTrigger>
+          </FormControl>
+          <SelectContent>
+            <SelectItem value="baja">Baja - Acceso fácil</SelectItem>
+            <SelectItem value="media">
+              Media - Requiere caminata moderada
+            </SelectItem>
+            <SelectItem value="alta">
+              Alta - Requiere buena condición física
+            </SelectItem>
+            <SelectItem value="extrema">
+              Extrema - Para personas experimentadas
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <FormDescription>
+          Indica qué tan difícil es llegar al destino
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para el campo de biodiversidad
+const BiodiversidadField = ({
+  control,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+}) => (
+  <FormField
+    control={control}
+    name="biodiversidad"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Flora y fauna</FormLabel>
+        <FormControl>
+          <Textarea
+            placeholder="Describe la biodiversidad del área..."
+            className="min-h-[120px]"
+            {...field}
+          />
+        </FormControl>
+        <FormDescription>
+          Incluye información sobre especies nativas, vegetación y animales
+          característicos.
+        </FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)
+
+// Componente para la pestaña de información básica
+const InformacionBasicaTab = ({
+  control,
+  handleCostoChange,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+  handleCostoChange: (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: ControllerRenderProps<FormValues, 'costo_entrada'>,
+  ) => void
+}) => (
+  <TabsContent value="informacion" className="space-y-6 pt-4">
+    <NombreField control={control} />
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <UbicacionField control={control} />
+      <UrlMapaField control={control} />
+    </div>
+
+    <CostoField control={control} handleCostoChange={handleCostoChange} />
+    <DescripcionField control={control} />
+  </TabsContent>
+)
+
+// Componente para la pestaña de características
+const CaracteristicasTab = ({
+  control,
+  form,
+}: {
+  control: Control<z.infer<typeof formSchema>>
+  form: UseFormReturn<z.infer<typeof formSchema>>
+}) => (
+  <TabsContent value="caracteristicas" className="space-y-6 pt-4">
+    <DificultadField control={control} />
+    <InfraestructuraField form={form} />
+    <BiodiversidadField control={control} />
+  </TabsContent>
+)
+
+// Componente para los botones de acción
+const ActionButtons = ({
+  isSubmitting,
+  initialData,
+  handleCancel,
+}: {
+  isSubmitting: boolean
+  initialData: SaltoFormProps['initialData']
+  handleCancel: () => void
+}) => (
+  <div className="flex justify-end gap-4 pt-4 border-t">
+    <Button type="button" variant="outline" onClick={handleCancel}>
+      Cancelar
+    </Button>
+    <Button type="submit" disabled={isSubmitting} variant="default">
+      {getButtonText(isSubmitting, initialData)}
+    </Button>
+  </div>
+)
 
 export function SaltoForm({ initialData }: SaltoFormProps) {
   const router = useRouter()
@@ -250,210 +524,6 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
     field.onChange(e.target.value ? Number(e.target.value) : 0)
   }
 
-  // Componente para el campo de nombre
-  const NombreField = () => (
-    <FormField
-      control={form.control}
-      name="nombre"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Nombre del destino</FormLabel>
-          <FormControl>
-            <Input placeholder="Ej. Salto del Arcoiris" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de ubicación
-  const UbicacionField = () => (
-    <FormField
-      control={form.control}
-      name="ubicacion"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Ubicación</FormLabel>
-          <FormControl>
-            <div className="relative">
-              <Input
-                aria-label="Ubicacion"
-                placeholder="Ej: Cataratas del Iguazú, Misiones"
-                {...field}
-              />
-              <MapPin className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            </div>
-          </FormControl>
-          <FormDescription>Formato: latitud, longitud</FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de URL del mapa
-  const UrlMapaField = () => (
-    <FormField
-      control={form.control}
-      name="url_mapa"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Link a Google Maps</FormLabel>
-          <FormControl>
-            <Input placeholder="https://maps.google.com/?q=..." {...field} />
-          </FormControl>
-          <FormDescription>URL completa de Google Maps</FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de costo
-  const CostoField = () => (
-    <FormField
-      control={form.control}
-      name="costo_entrada"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Costo (ARS)</FormLabel>
-          <FormControl>
-            <Input
-              type="number"
-              placeholder="0"
-              {...field}
-              onChange={(e) => handleCostoChange(e, field)}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de descripción
-  const DescripcionField = () => (
-    <FormField
-      control={form.control}
-      name="descripcion"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Descripción del salto</FormLabel>
-          <FormControl>
-            <Textarea
-              placeholder="Describe las características del salto..."
-              className="min-h-[120px]"
-              {...field}
-            />
-          </FormControl>
-          <FormDescription>
-            Incluye altura, caudal, formación rocosa, pozas y características
-            distintivas del salto.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de dificultad
-  const DificultadField = () => (
-    <FormField
-      control={form.control}
-      name="dificultad"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Nivel de dificultad del acceso</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona el nivel de dificultad" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="baja">Baja - Acceso fácil</SelectItem>
-              <SelectItem value="media">
-                Media - Requiere caminata moderada
-              </SelectItem>
-              <SelectItem value="alta">
-                Alta - Requiere buena condición física
-              </SelectItem>
-              <SelectItem value="extrema">
-                Extrema - Para personas experimentadas
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <FormDescription>
-            Indica qué tan difícil es llegar al destino
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para el campo de biodiversidad
-  const BiodiversidadField = () => (
-    <FormField
-      control={form.control}
-      name="biodiversidad"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Flora y fauna</FormLabel>
-          <FormControl>
-            <Textarea
-              placeholder="Describe la biodiversidad del área..."
-              className="min-h-[120px]"
-              {...field}
-            />
-          </FormControl>
-          <FormDescription>
-            Incluye información sobre especies nativas, vegetación y animales
-            característicos.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-
-  // Componente para la pestaña de información básica
-  const InformacionBasicaTab = () => (
-    <TabsContent value="informacion" className="space-y-6 pt-4">
-      <NombreField />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <UbicacionField />
-        <UrlMapaField />
-      </div>
-
-      <CostoField />
-      <DescripcionField />
-    </TabsContent>
-  )
-
-  // Componente para la pestaña de características
-  const CaracteristicasTab = () => (
-    <TabsContent value="caracteristicas" className="space-y-6 pt-4">
-      <DificultadField />
-      <InfraestructuraField form={form} />
-      <BiodiversidadField />
-    </TabsContent>
-  )
-
-  // Componente para los botones de acción
-  const ActionButtons = () => (
-    <div className="flex justify-end gap-4 pt-4 border-t">
-      <Button type="button" variant="outline" onClick={handleCancel}>
-        Cancelar
-      </Button>
-      <Button type="submit" disabled={isSubmitting} variant="default">
-        {getButtonText(isSubmitting, initialData)}
-      </Button>
-    </div>
-  )
-
   return (
     <Form {...form}>
       <form
@@ -467,11 +537,18 @@ export function SaltoForm({ initialData }: SaltoFormProps) {
             <TabsTrigger value="caracteristicas">Características</TabsTrigger>
           </TabsList>
 
-          <InformacionBasicaTab />
-          <CaracteristicasTab />
+          <InformacionBasicaTab
+            control={form.control}
+            handleCostoChange={handleCostoChange}
+          />
+          <CaracteristicasTab control={form.control} form={form} />
         </Tabs>
 
-        <ActionButtons />
+        <ActionButtons
+          isSubmitting={isSubmitting}
+          initialData={initialData}
+          handleCancel={handleCancel}
+        />
       </form>
     </Form>
   )
