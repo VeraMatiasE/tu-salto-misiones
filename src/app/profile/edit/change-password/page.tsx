@@ -157,8 +157,8 @@ export default function CambiarPasswordPage() {
                 </div>
                 {errors.password && (
                   <ul className="text-sm text-red-600 mt-1 space-y-1">
-                    {errors.password.map((err, idx) => (
-                      <li key={`error-pass-${idx}`}>{err}</li>
+                    {errors.password.map((err) => (
+                      <li key={`error-pass-${err}`}>{err}</li>
                     ))}
                   </ul>
                 )}
@@ -197,8 +197,8 @@ export default function CambiarPasswordPage() {
                 </div>
                 {errors.confirmPassword && (
                   <ul className="text-sm text-red-600 mt-1 space-y-1">
-                    {errors.confirmPassword.map((err, idx) => (
-                      <li key={`error-confirm-${idx}`}>{err}</li>
+                    {errors.confirmPassword.map((err) => (
+                      <li key={`error-confirm-${err}`}>{err}</li>
                     ))}
                   </ul>
                 )}
