@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Search, MapPin } from 'lucide-react'
@@ -21,6 +21,8 @@ export default function HomePage() {
     [],
   )
 
+  const inputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     fetch('/api/destinos/destacados')
       .then((res) => res.json())
@@ -33,8 +35,9 @@ export default function HomePage() {
   }, [])
 
   const handleSearch = () => {
-    if (searchTerm.trim()) {
-      router.push(`/saltos?search=${encodeURIComponent(searchTerm.trim())}`)
+    const value = inputRef.current?.value.trim() ?? ''
+    if (value) {
+      router.push(`/saltos?search=${encodeURIComponent(value)}`)
     } else {
       router.push('/saltos')
     }
@@ -68,6 +71,7 @@ export default function HomePage() {
           <div className="max-w-2xl mx-auto relative">
             <Input
               type="text"
+              ref={inputRef}
               placeholder="Buscar salto"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
